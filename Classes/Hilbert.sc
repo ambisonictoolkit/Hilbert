@@ -225,8 +225,88 @@ HilbertHIm : HilbertH {
 
 /*
 Hilbert transform - Phase Delay Network (PDN), IIR
+a 12 pole (6 per side) Hilbert IIR filter
+based on Sean Costello and Bernie Hutchins
+created by jl anderson - 7 jan 2001
 */
 
 HilbertPDN {
+
+	// Using first order sections.
+	*ar { |in, mul = 1.0, add = 0.0|
+		var numPoles, poles, gammas, coefs;
+		var hilbertCos, hilbertSin;
+		var out;
+
+		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
+		numPoles = 12;
+		poles = [
+			0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
+			1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114
+		];
+		gammas = (15.0 * pi / SampleRate.ir) * poles;
+
+		coefs = [];
+		numPoles.do({ arg i;
+			coefs = coefs.add((gammas.at(i)-1)/(gammas.at(i)+1))
+		});
+
+		// Cos and Sin - not the prettiest - but it works!!!
+		hilbertCos = in;
+		numPoles.div(2).do({ arg i;
+			hilbertCos = FOS.ar(hilbertCos, coefs.at(i), 1.0, coefs.at(i).neg)
+		});
+		hilbertSin = in;
+		numPoles.div(2).do({ arg i;
+			hilbertSin = FOS.ar(hilbertSin, coefs.at(i+6), 1.0, coefs.at(i+6).neg)
+		});
+
+		^( mul * ( add + [ hilbertCos, hilbertSin ] ) )
+	}
+
+	// Using second order sections.
+	*ar1 { |in, mul = 1.0, add = 0.0|
+
+		var numPoles, poles, gammas, coefs, b1, b2;
+		var hilbertCos, hilbertSin;
+		var out;
+
+		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
+		// also found in Electronotes #43
+		numPoles = 12;
+		// pole values are grouped in a strange order, to allow for easy
+		// generation of the second order coefficients
+		poles = [
+			0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581,
+			1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271
+		];
+		// math for bilinear transform of pole coefficients for 1st order allpass filters
+		gammas = (15.0 * pi / SampleRate.ir) * poles;
+
+		coefs = [];
+		numPoles.do({ arg i;
+			coefs = coefs.add((gammas.at(i)-1)/(gammas.at(i)+1))
+		});
+
+		// 1st order allpass filters coefs are grouped into coefs for 2nd order sections
+		b1 = [];
+		b2 = [];
+		numPoles.div(2).do({ arg i;
+			b1 = b1.add(coefs.at(2*i) + coefs.at((2*i)+1));
+			b2 = b2.add(coefs.at(2*i) * coefs.at((2*i)+1));
+		});
+
+		// Cos and Sin - not the prettiest - but it works!!!
+		hilbertCos = in;
+		numPoles.div(4).do({ arg i;
+			hilbertCos = SOS.ar(hilbertCos, b2.at(i), b1.at(i), 1.0, b1.at(i).neg, b2.at(i).neg)
+		});
+		hilbertSin = in;
+		numPoles.div(4).do({ arg i;
+			hilbertSin = SOS.ar(hilbertSin, b2.at(i+3), b1.at(i+3), 1.0, b1.at(i+3).neg, b2.at(i+3).neg)
+		});
+
+		^( mul * ( add + [ hilbertCos, hilbertSin ] ) )
+	}
 
 }
