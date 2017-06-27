@@ -49,11 +49,11 @@ HilbertWRe and HilbertWIm, respectively.
 
 HilbertW {
 
-	*ar { |in, size = 2048|
+	*ar { |in, size = 2048, mul = 1, add = 0.0|
 
 		^[
-			HilbertWRe.ar(in, size),
-			HilbertWIm.ar(in, size),
+			HilbertWRe.ar(in, size, mul, add),
+			HilbertWIm.ar(in, size, mul, add),
 		]
 
 	}
@@ -61,21 +61,21 @@ HilbertW {
 
 HilbertWRe {
 
-	*ar { |in, size = 2048|
+	*ar { |in, size = 2048, mul = 1, add = 0.0|
 		var del = (size - BlockSize.ir) / SampleRate.ir;
-		del.poll;
-		^DelayN.ar(in, del, del)
+		^DelayN.ar(in, del, del, mul, add)
 	}
 }
 
 HilbertWIm {
 
-	*ar { |in, size = 2048|
-		var cos, sin, inputDbl, sinBr, cosBr;
+	*ar { |in, size = 2048, mul = 1, add = 0.0|
+		var nyqDiv2, cos, sin, inputDbl, sinBr, cosBr, out;
 
 		// quadrature oscillators at nyquist/2
-		cos = SinOsc.ar(SampleRate.ir/4, pi/2);
-		sin = SinOsc.ar(SampleRate.ir/4, 0);
+		nyqDiv2 = SampleRate.ir/4;
+		cos = SinOsc.ar(nyqDiv2, pi/2);
+		sin = SinOsc.ar(nyqDiv2, 0);
 		inputDbl = in * 2;
 
 		// cosine and sine branches using brickwall for lowpass at nyquist/2
@@ -100,7 +100,8 @@ HilbertWIm {
 		);
 
 		// modulate and sum
-		^([cosBr, sinBr] * [sin, cos.neg]).sum
+		out = ([cosBr, sinBr] * [sin, cos.neg]).sum
+		^(mul * (add + out))
 	}
 }
 
@@ -208,13 +209,12 @@ HilbertHRe {
 }
 
 
-HilbertHIm : HilbertH {
+HilbertHIm {
 	*ar {
 		| in, size=2048, mul=1.0, add=0.0 |
 		var r, i, kernel_i, image;
 
 		r = HilbertH.calcRealCoeffs(size);
-		"realz: ".post; r.postln;
 		i = HilbertH.calcImagCoeffs(size, r);
 		kernel_i = LocalBuf(size, 1).set(i);
 
@@ -265,6 +265,7 @@ HilbertPDN {
 	}
 
 	// Using second order sections.
+	// long form
 	*ar1 { |in, mul = 1.0, add = 0.0|
 
 		var numPoles, poles, gammas, coefs, b1, b2;
@@ -309,4 +310,64 @@ HilbertPDN {
 		^( mul * ( add + [ hilbertCos, hilbertSin ] ) )
 	}
 
+	// refactored form of *ar1
+	*ar2 { |in, mul = 1.0, add = 0.0|
+		^[
+			HilbertPDNRe.ar(in, mul, add),
+			HilbertPDNIm.ar(in, mul, add)
+		]
+	}
+
+
+	*calcSOSCoefs { |...poles|
+		var gammas, coefs, b1, b2;
+
+		gammas = (15.0 * pi / SampleRate.ir) * poles;
+
+		coefs = [];
+		gammas.do({ arg gamma;
+			coefs = coefs.add((gamma-1)/(gamma+1))
+		});
+
+		// 1st order allpass filters coefs are grouped into coefs for 2nd order sections
+		b1 = [];
+		b2 = [];
+		// gathers even and odd
+		poles.size.div(2).do({ arg i;
+			b1 = b1.add(coefs[2*i] + coefs[(2*i)+1]);
+			b2 = b2.add(coefs[2*i] * coefs[(2*i)+1]);
+		});
+
+		^[b1, b2]
+	}
+}
+
+HilbertPDNRe {
+	*ar { |in, mul = 1.0, add = 0.0|
+		var b1, b2, hilbertCos;
+
+		#b1, b2 = HilbertPDN.calcSOSCoefs(0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581);
+
+		hilbertCos = in;
+		3.do({ |i|
+			hilbertCos = SOS.ar(hilbertCos, b2[i], b1[i], 1.0, b1[i].neg, b2[i].neg)
+		});
+
+		^(mul * (add + hilbertCos))
+	}
+}
+
+HilbertPDNIm {
+	*ar { |in, mul = 1.0, add = 0.0|
+		var b1, b2, hilbertSin;
+
+		#b1, b2 = HilbertPDN.calcSOSCoefs(1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271);
+
+		hilbertSin = in;
+		3.do({ |i|
+			hilbertSin = SOS.ar(hilbertSin, b2[i], b1[i], 1.0, b1[i].neg, b2[i].neg)
+		});
+
+		^(mul * (add + hilbertSin))
+	}
 }
