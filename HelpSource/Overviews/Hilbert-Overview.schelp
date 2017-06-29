@@ -1,0 +1,13 @@
+title:: The Hilbert Transform
+summary:: Various implementations of the Hilbert transform.
+categories:: Libraries
+
+section:: Introduction
+The Hilbert transform is offered in various forms for your choosing
+LIST::
+##link::Classes/HilbertW:: - The Weaver method: A well behaved phase response, uses FFT processing internally (code::PV_BrickWall::), therefore incurs a delay.
+##link::Classes/HilbertH:: - The Hartley method: Uses an FIR filter, has a good magnitude response though incurs a delay.
+##link::Classes/HilbertPDN:: - A Phase Delay Network (PDN): uses an IIR filter, "real-time", but with a non-optimal magnitude response near the edges of the passband.
+::
+
+Additionally, each class offers a pseudo-UGen for returning just the real or imaginary signal independently by appending strong::Re:: or strong::Im::, respectively, to the class name. E.g. code::HilbertWRe::, code::HilbertWIm::.
