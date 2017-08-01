@@ -29,7 +29,7 @@
 // HilbertHRe
 // HilbertHIm
 //
-// Phase Delay Network (PDN) method:
+// Phase Difference Network (PDN) method:
 // HilbertPDN
 // HilbertPDNRe
 // HilbertPDNIm
@@ -224,7 +224,7 @@ HilbertHIm {
 
 
 /*
-Hilbert transform - Phase Delay Network (PDN), IIR
+Hilbert transform - Phase Difference Network (PDN), IIR
 a 12 pole (6 per side) Hilbert IIR filter
 based on Sean Costello and Bernie Hutchins
 created by jl anderson - 7 jan 2001
