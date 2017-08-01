@@ -112,43 +112,13 @@ HilbertWIm {
 Hilbert transform - Hartley method
 
 Uses an FIR filter with Convolution2.ar and is therefore delayed by:
-(size - 1) / 2 + size - s.options.blockSize
+size/2 + size - s.options.blockSize
+
+Kernel is rendered to sample delay.
 */
 
 HilbertH {
 
-	// // all-in-one
-	// *ar { arg in, size=2048, mul=1.0, add=0.0;
-	// 	var kernel_r, kernel_i;
-	// 	var hilbertCoeffs, r, i, real, imag;
-	//
-	// 	hilbertCoeffs =  { |size|
-	// 		var xReal, xImag, reflect, window, half_win, arr;
-	//
-	// 		half_win = (size-1)/2;
-	// 		reflect = [1.0, -1.0].dup(size/2).flat;
-	// 		window = Signal.hanningWindow(size);
-	//
-	// 		// real response
-	// 		xReal = Array.series(size, half_win.neg, 1);
-	// 		xReal = xReal.collect({|i| (i == 0).if({ 1 }, { sin(pi * i) / (pi * i) }) }) * window;
-	//
-	// 		// imaginary response
-	// 		xImag = xReal * reflect;
-	// 		[xReal, xImag]
-	// 	};
-	//
-	// 	#r, i = hilbertCoeffs.(size);
-	//
-	// 	kernel_r = LocalBuf(size, 1).set(r);
-	// 	kernel_i = LocalBuf(size, 1).set(i);
-	//
-	// 	#real, imag = Convolution2.ar(in, [kernel_r, kernel_i], framesize: size, mul: mul, add: add);
-	//
-	// 	^[ real, imag ]
-	// }
-
-	// alternate
 	*ar { |in, size=2048, mul=1.0, add=0.0|
 		var r, kernel_r, real;
 
@@ -159,24 +129,44 @@ HilbertH {
 
 	}
 
+	// calculate real coefficients as delayed impulse
 	*calcRealCoeffs { |size|
-		var half_win, window, xReal;
+		var half_win, xReal;
 
-		half_win = (size-1)/2;
-		window = Signal.hanningWindow(size);
+		half_win = size/2;
 
 		// real response
-		xReal = Array.series(size, half_win.neg, 1);
-		^xReal.collect({|i| (i == 0).if({ 1 }, { sin(pi * i) / (pi * i) }) }) * window;
+		xReal = Array.fill(size, { 0.0 });
+		xReal.put(half_win, 1.0);
+
+		^xReal
 	}
 
-	*calcImagCoeffs { |size, realCoeffs|
-		var reflect;
+	// // calculate real coefficients via sinc
+	// *calcRealCoeffs { |size|
+	// 	var half_win, window, xReal;
+	//
+	// 	half_win = size/2;
+	// 	window = Signal.hanningWindow(size+1);
+	//
+	// 	// imaginary response
+	// 	xReal = Array.series(size+1, half_win.neg, 1);
+	// 	xReal = xReal.collect({|i| (i == 0).if({ 1 }, { sin(pi * i) / (pi * i) }) }) * window;
+	//
+	// 	^xReal.keep(size)
+	// }
 
-		realCoeffs ?? {Error("realCoeffs not provided. You can generate them with HilbertH.calcRealCoeffs").throw};
+	// calculate imag coefficients via (1-cos(t)) / t
+	*calcImagCoeffs { |size|
+		var half_win, window, xImag;
 
-		reflect = [1.0, -1.0].dup(size/2).flat;
-		^realCoeffs * reflect;
+		half_win = size/2;
+		window = Signal.hanningWindow(size+1);
+
+		// imaginary response
+		xImag = Array.series(size+1, half_win.neg, 1);
+		xImag = xImag.collect({|i| (i == 0).if({ 0 }, { 1 - cos(pi * i) / (pi * i) }) }) * window;
+		^xImag.keep(size);
 	}
 }
 
@@ -185,13 +175,11 @@ HilbertHRe {
 	*ar { |in, size=2048, mul=1.0, add=0.0|
 		var delay;
 
-		delay = (size-1)/2 + size-BlockSize.ir;
-		delay = delay / SampleRate.ir;
+		delay = size/2 + size-BlockSize.ir;  // in samples
+		delay = delay / SampleRate.ir;  // in seconds
 
-		// delay will be exactly between samples, so DelayL is OK
-		// compared to generating the real component with
-		// the convolution method, the difference in signal is ~120dB
-		^DelayL.ar(in, delay, delay, mul, add);
+		// delay aligned to sample, use DelayN
+		^DelayN.ar(in, delay, delay, mul, add);
 	}
 
 	// if identical signal paths are preferred
@@ -212,10 +200,9 @@ HilbertHRe {
 HilbertHIm {
 	*ar {
 		| in, size=2048, mul=1.0, add=0.0 |
-		var r, i, kernel_i, image;
+		var i, kernel_i, image;
 
-		r = HilbertH.calcRealCoeffs(size);
-		i = HilbertH.calcImagCoeffs(size, r);
+		i = HilbertH.calcImagCoeffs(size);
 		kernel_i = LocalBuf(size, 1).set(i);
 
 		^Convolution2.ar(in, kernel_i, framesize: size, mul: mul, add: add);
