@@ -74,8 +74,9 @@ HilbertWIm {
 
 		// quadrature oscillators at nyquist/2
 		nyqDiv2 = SampleRate.ir/4;
-		cos = SinOsc.ar(nyqDiv2, pi/2);
-		sin = SinOsc.ar(nyqDiv2, 0);
+		cos = Impulse.ar(nyqDiv2);
+		cos = Delay2.ar(cos, -1, cos);
+		sin = Delay1.ar(cos);
 		inputDbl = in * 2;
 
 		// cosine and sine branches using brickwall for lowpass at nyquist/2
