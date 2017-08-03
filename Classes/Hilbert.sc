@@ -102,7 +102,7 @@ HilbertWIm {
 
 		// modulate and sum
 		out = ([cosBr, sinBr] * [sin, cos.neg]).sum
-		^(mul * (add + out))
+		^((out * mul) + add)
 	}
 }
 
@@ -249,7 +249,7 @@ HilbertPDN {
 			hilbertSin = FOS.ar(hilbertSin, coefs.at(i+6), 1.0, coefs.at(i+6).neg)
 		});
 
-		^( mul * ( add + [ hilbertCos, hilbertSin ] ) )
+		^(([ hilbertCos, hilbertSin ] * mul) + add)
 	}
 
 	// Using second order sections.
@@ -295,7 +295,7 @@ HilbertPDN {
 			hilbertSin = SOS.ar(hilbertSin, b2.at(i+3), b1.at(i+3), 1.0, b1.at(i+3).neg, b2.at(i+3).neg)
 		});
 
-		^( mul * ( add + [ hilbertCos, hilbertSin ] ) )
+		^(([ hilbertCos, hilbertSin ] * mul) + add)
 	}
 
 	// refactored form of *ar1
@@ -341,7 +341,7 @@ HilbertPDNRe {
 			hilbertCos = SOS.ar(hilbertCos, b2[i], b1[i], 1.0, b1[i].neg, b2[i].neg)
 		});
 
-		^(mul * (add + hilbertCos))
+		^((hilbertCos * mul) + add)
 	}
 }
 
@@ -356,6 +356,6 @@ HilbertPDNIm {
 			hilbertSin = SOS.ar(hilbertSin, b2[i], b1[i], 1.0, b1[i].neg, b2[i].neg)
 		});
 
-		^(mul * (add + hilbertSin))
+		^((hilbertSin * mul) + add)
 	}
 }
