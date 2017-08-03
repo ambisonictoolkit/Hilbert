@@ -229,8 +229,8 @@ HilbertPDN {
 		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
 		numPoles = 12;
 		poles = [
-			0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
-			1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114
+			1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114,
+			0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578
 		];
 		gammas = (15.0 * pi / SampleRate.ir) * poles;
 
@@ -266,8 +266,8 @@ HilbertPDN {
 		// pole values are grouped in a strange order, to allow for easy
 		// generation of the second order coefficients
 		poles = [
-			0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581,
-			1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271
+			1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271,
+			0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581
 		];
 		// math for bilinear transform of pole coefficients for 1st order allpass filters
 		gammas = (15.0 * pi / SampleRate.ir) * poles;
@@ -334,7 +334,7 @@ HilbertPDNRe {
 	*ar { |in, mul = 1.0, add = 0.0|
 		var b1, b2, hilbertCos;
 
-		#b1, b2 = HilbertPDN.calcSOSCoefs(0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581);
+		#b1, b2 = HilbertPDN.calcSOSCoefs(1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271);
 
 		hilbertCos = in;
 		3.do({ |i|
@@ -349,7 +349,7 @@ HilbertPDNIm {
 	*ar { |in, mul = 1.0, add = 0.0|
 		var b1, b2, hilbertSin;
 
-		#b1, b2 = HilbertPDN.calcSOSCoefs(1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271);
+		#b1, b2 = HilbertPDN.calcSOSCoefs(0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581);
 
 		hilbertSin = in;
 		3.do({ |i|
