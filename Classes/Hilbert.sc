@@ -1,6 +1,6 @@
 /*
 	Copyright Joseph Anderson and Michael McCrea, 2017
-		J Anderson	j.anderson[at]ambisonictoolkit.net
+		J Anderson	joanders@uw.edu
 		M McCrea		mtm5@uw.edu
 
 	This file is part of the Hilbert quark for SuperCollider 3 and is free software:
@@ -215,91 +215,38 @@ HilbertHIm {
 Hilbert transform - Phase Difference Network (PDN), IIR
 a 12 pole (6 per side) Hilbert IIR filter
 based on Sean Costello and Bernie Hutchins
-created by jl anderson - 7 jan 2001
+created by J Anderson - 7 jan 2001
+
+See also:
+
+B. Hutchins, "The Design of Wideband Analog 90° Phase Differencing Networks
+without Large Spread of Capacitor Values", Electronotes, Special Issue G, No. 168
+"http://electronotes.netfirms.com/EN168-90degreePDN.PDF"
+
+B. Hutchins, "Calculation of the Poles of 90° Phase Difference Networks [after Weaver]"
+in Musical Engineer's Handbook: Musical Engineering for Electronic Music. Ithaca, NY: Electronotes. 1975.
+"http://electronotes.netfirms.com/MEHCh6aPart.PDF"
+
+Weaver, D. “Design of RC Wide-Band 90-Degree Phase-Difference Network.”
+Proceedings of the IRE, vol. 42, no. 4, 1954, pp. 671–676.
+"http://ieeexplore.ieee.org/document/4051669/"
+
+Other useful design references:
+
+Ansari, R. “IIR Discrete-Time Hilbert Transformers.” Acoustics, Speech and Signal Processing,
+IEEE Transactions On, vol. 35, no. 8, 1987, pp. 1116–1119.
+"http://ieeexplore.ieee.org/abstract/document/1165250/"
+
+Schüssler, H., and W. Steffen. “Halfband Filters and Hilbert Transformers.” Circuits, Systems and
+Signal Processing, vol. 17, no. 2, 1998, pp. 137–164.
+"https://link.springer.com/article/10.1007/BF01202851"
+
+
 */
 
 HilbertPDN {
 
-	// Using first order sections.
 	*ar { |in, mul = 1.0, add = 0.0|
-		var numPoles, poles, gammas, coefs;
-		var hilbertCos, hilbertSin;
-		var out;
-
-		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
-		numPoles = 12;
-		poles = [
-			1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114,
-			0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578
-		];
-		gammas = (15.0 * pi / SampleRate.ir) * poles;
-
-		coefs = [];
-		numPoles.do({ arg i;
-			coefs = coefs.add((gammas.at(i)-1)/(gammas.at(i)+1))
-		});
-
-		// Cos and Sin - not the prettiest - but it works!!!
-		hilbertCos = in;
-		numPoles.div(2).do({ arg i;
-			hilbertCos = FOS.ar(hilbertCos, coefs.at(i), 1.0, coefs.at(i).neg)
-		});
-		hilbertSin = in;
-		numPoles.div(2).do({ arg i;
-			hilbertSin = FOS.ar(hilbertSin, coefs.at(i+6), 1.0, coefs.at(i+6).neg)
-		});
-
-		^(([ hilbertCos, hilbertSin ] * mul) + add)
-	}
-
-	// Using second order sections.
-	// long form
-	*ar1 { |in, mul = 1.0, add = 0.0|
-
-		var numPoles, poles, gammas, coefs, b1, b2;
-		var hilbertCos, hilbertSin;
-		var out;
-
-		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
-		// also found in Electronotes #43
-		numPoles = 12;
-		// pole values are grouped in a strange order, to allow for easy
-		// generation of the second order coefficients
-		poles = [
-			1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271,
-			0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581
-		];
-		// math for bilinear transform of pole coefficients for 1st order allpass filters
-		gammas = (15.0 * pi / SampleRate.ir) * poles;
-
-		coefs = [];
-		numPoles.do({ arg i;
-			coefs = coefs.add((gammas.at(i)-1)/(gammas.at(i)+1))
-		});
-
-		// 1st order allpass filters coefs are grouped into coefs for 2nd order sections
-		b1 = [];
-		b2 = [];
-		numPoles.div(2).do({ arg i;
-			b1 = b1.add(coefs.at(2*i) + coefs.at((2*i)+1));
-			b2 = b2.add(coefs.at(2*i) * coefs.at((2*i)+1));
-		});
-
-		// Cos and Sin - not the prettiest - but it works!!!
-		hilbertCos = in;
-		numPoles.div(4).do({ arg i;
-			hilbertCos = SOS.ar(hilbertCos, b2.at(i), b1.at(i), 1.0, b1.at(i).neg, b2.at(i).neg)
-		});
-		hilbertSin = in;
-		numPoles.div(4).do({ arg i;
-			hilbertSin = SOS.ar(hilbertSin, b2.at(i+3), b1.at(i+3), 1.0, b1.at(i+3).neg, b2.at(i+3).neg)
-		});
-
-		^(([ hilbertCos, hilbertSin ] * mul) + add)
-	}
-
-	// refactored form of *ar1
-	*ar2 { |in, mul = 1.0, add = 0.0|
 		^[
 			HilbertPDNRe.ar(in, mul, add),
 			HilbertPDNIm.ar(in, mul, add)
@@ -307,7 +254,8 @@ HilbertPDN {
 	}
 
 
-	*calcSOSCoefs { |...poles|
+	// *calcSOSCoefs { |...poles|
+	*calcSOSCoefs { |poles|
 		var gammas, coefs, b1, b2;
 
 		gammas = (15.0 * pi / SampleRate.ir) * poles;
@@ -333,8 +281,16 @@ HilbertPDN {
 HilbertPDNRe {
 	*ar { |in, mul = 1.0, add = 0.0|
 		var b1, b2, hilbertCos;
+		var poles;
 
-		#b1, b2 = HilbertPDN.calcSOSCoefs(1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271);
+		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
+		// also found in Electronotes #43
+		// pole values are grouped in order as described by Hutchins
+		// for optimal realization of the second order section coefficients
+		// #b1, b2 = HilbertPDN.calcSOSCoefs(1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271);  // cos: real
+		poles = [1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271];  // cos: real
+
+		#b1, b2 = HilbertPDN.calcSOSCoefs(poles);
 
 		hilbertCos = in;
 		3.do({ |i|
@@ -348,8 +304,16 @@ HilbertPDNRe {
 HilbertPDNIm {
 	*ar { |in, mul = 1.0, add = 0.0|
 		var b1, b2, hilbertSin;
+		var poles;
 
-		#b1, b2 = HilbertPDN.calcSOSCoefs(0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581);
+		// values taken from Bernie Hutchins, "Musical Engineer's Handbook"
+		// also found in Electronotes #43
+		// pole values are grouped in order as described by Hutchins
+		// for optimal realization of the second order section coefficients
+		// #b1, b2 = HilbertPDN.calcSOSCoefs(0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581);  // sin: imag
+		poles = [0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581];  // sin: imag
+
+		#b1, b2 = HilbertPDN.calcSOSCoefs(poles);
 
 		hilbertSin = in;
 		3.do({ |i|
