@@ -57,6 +57,57 @@ HilbertW {
 		]
 
 	}
+
+	*arMag { |in, size = 2048, mul = 1, add = 0.0|
+		var mag, real, imag;
+
+		real = HilbertWRe.ar(in, size);
+		imag = HilbertWIm.ar(in, size);
+
+		mag = (real.squared + imag.squared).sqrt;
+
+		^((mag * mul) + add)
+	}
+
+	*arPhase { |in, size = 2048, mul = 1, add = 0.0|
+		var phase, real, imag;
+
+		real = HilbertWRe.ar(in, size);
+		imag = HilbertWIm.ar(in, size);
+
+		phase = imag.atan2(real);
+
+		^((phase * mul) + add)
+	}
+
+	*arRotate { |in, angle = 0.0, size = 2048, mul = 1, add = 0.0|
+		var out, real, imag;
+
+		real = HilbertWRe.ar(in, size);
+		imag = HilbertWIm.ar(in, size);
+
+		out = (angle.cos * real) + (angle.sin * imag);
+
+		^((out * mul) + add)
+	}
+
+	*arShift { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
+		var out, real, imag;
+		var quadOsc, delay, phaseOffset;
+
+		delay = size * SampleDur.ir - ControlDur.ir;
+		phaseOffset = (-2pi * freq * delay).mod(2pi);
+
+		quadOsc = SinOsc.ar(freq, [pi/2, 0] + phaseOffset);
+
+		real = HilbertWRe.ar(in, size);
+		imag = HilbertWIm.ar(in, size);
+
+		out = (quadOsc.at(0) * real) - (quadOsc.at(1) * imag);
+
+		^((out * mul) + add)
+	}
+
 }
 
 HilbertWRe {
@@ -169,6 +220,56 @@ HilbertH {
 		xImag = xImag.collect({|i| (i == 0).if({ 0 }, { 1 - cos(pi * i) / (pi * i) }) }) * window;
 		^xImag.keep(size);
 	}
+
+	*arMag { |in, size = 2048, mul = 1, add = 0.0|
+		var mag, real, imag;
+
+		real = HilbertHRe.ar(in, size);
+		imag = HilbertHIm.ar(in, size);
+
+		mag = (real.squared + imag.squared).sqrt;
+
+		^((mag * mul) + add)
+	}
+
+	*arPhase { |in, size = 2048, mul = 1, add = 0.0|
+		var phase, real, imag;
+
+		real = HilbertHRe.ar(in, size);
+		imag = HilbertHIm.ar(in, size);
+
+		phase = imag.atan2(real);
+
+		^((phase * mul) + add)
+	}
+
+	*arRotate { |in, angle = 0.0, size = 2048, mul = 1, add = 0.0|
+		var out, real, imag;
+
+		real = HilbertHRe.ar(in, size);
+		imag = HilbertHIm.ar(in, size);
+
+		out = (angle.cos * real) + (angle.sin * imag);
+
+		^((out * mul) + add)
+	}
+
+	*arShift { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
+		var out, real, imag;
+		var quadOsc, delay, phaseOffset;
+
+		delay = (size + ((size/ 2).floor).asInt) * SampleDur.ir - ControlDur.ir;
+		phaseOffset = (-2pi * freq * delay).mod(2pi);
+
+		quadOsc = SinOsc.ar(freq, [pi/2, 0] + phaseOffset);
+
+		real = HilbertHRe.ar(in, size);
+		imag = HilbertHIm.ar(in, size);
+
+		out = (quadOsc.at(0) * real) - (quadOsc.at(1) * imag);
+
+		^((out * mul) + add)
+	}
 }
 
 HilbertHRe {
@@ -253,8 +354,6 @@ HilbertPDN {
 		]
 	}
 
-
-	// *calcSOSCoefs { |...poles|
 	*calcSOSCoefs { |poles|
 		var gammas, coefs, b1, b2;
 
@@ -276,6 +375,53 @@ HilbertPDN {
 
 		^[b1, b2]
 	}
+
+	*arMag { |in, mul = 1, add = 0.0|
+		var mag, real, imag;
+
+		real = HilbertPDNRe.ar(in);
+		imag = HilbertPDNIm.ar(in);
+
+		mag = (real.squared + imag.squared).sqrt;
+
+		^((mag * mul) + add)
+	}
+
+	*arPhase { |in, mul = 1, add = 0.0|
+		var phase, real, imag;
+
+		real = HilbertPDNRe.ar(in);
+		imag = HilbertPDNIm.ar(in);
+
+		phase = imag.atan2(real);
+
+		^((phase * mul) + add)
+	}
+
+	*arRotate { |in, angle = 0.0, mul = 1, add = 0.0|
+		var out, real, imag;
+
+		real = HilbertPDNRe.ar(in);
+		imag = HilbertPDNIm.ar(in);
+
+		out = (angle.cos * real) + (angle.sin * imag);
+
+		^((out * mul) + add)
+	}
+
+	*arShift { |in, freq = 0.0, mul = 1, add = 0.0|
+		var out, real, imag;
+		var quadOsc;
+
+		quadOsc = SinOsc.ar(freq, [pi/2, 0]);  // non-linear phase is uncompensated
+
+		real = HilbertPDNRe.ar(in);
+		imag = HilbertPDNIm.ar(in);
+
+		out = (quadOsc.at(0) * real) - (quadOsc.at(1) * imag);
+
+		^((out * mul) + add)
+	}
 }
 
 HilbertPDNRe {
@@ -287,7 +433,6 @@ HilbertPDNRe {
 		// also found in Electronotes #43
 		// pole values are grouped in order as described by Hutchins
 		// for optimal realization of the second order section coefficients
-		// #b1, b2 = HilbertPDN.calcSOSCoefs(1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271);  // cos: real
 		poles = [1.2524, 2770.1114, 5.5671, 364.7914, 22.3423, 89.6271];  // cos: real
 
 		#b1, b2 = HilbertPDN.calcSOSCoefs(poles);
@@ -310,7 +455,6 @@ HilbertPDNIm {
 		// also found in Electronotes #43
 		// pole values are grouped in order as described by Hutchins
 		// for optimal realization of the second order section coefficients
-		// #b1, b2 = HilbertPDN.calcSOSCoefs(0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581);  // sin: imag
 		poles = [0.3609, 798.4578, 2.7412, 179.6242, 11.1573, 44.7581];  // sin: imag
 
 		#b1, b2 = HilbertPDN.calcSOSCoefs(poles);
@@ -323,3 +467,4 @@ HilbertPDNIm {
 		^((hilbertSin * mul) + add)
 	}
 }
+
