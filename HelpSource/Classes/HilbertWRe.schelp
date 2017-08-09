@@ -1,0 +1,185 @@
+CLASS:: HilbertWRe
+summary:: Applies the Real part of the Hilbert transform to an input signal.
+categories:: Libraries, UGens>Filters>Nonlinear
+related:: Classes/HilbertW, Classes/HilbertWIm
+
+DESCRIPTION::
+
+Offers the Hilbert transform of an input signal via Weaver's emphasis::Third Method::. footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.::
+
+The Hilbert Transform, returning the first of two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::, footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
+
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: in
+
+The input signal to transform.
+
+ARGUMENT:: size
+
+The size of the FFT used for emphasis::Weaver Half-Band:: filtering.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns:: The real part of the Hilbert Transform.
+
+
+SECTION:: Frequency response
+
+Please review the discussion link::Classes/HilbertW#Frequency%20response#found here::.
+
+
+EXAMPLES::
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+    var fftResponse, fftMag;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim magnitude)
+    fftMag = fftResponse.magnitude;
+    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+    fftMag;
+};
+
+
+~calcPha = { arg kernel;
+
+    var fftResponse, fftPha;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim phase)
+    fftPha = fftResponse.phase;
+    fftPha = fftPha.copyFromStart((kernel.size/2).asInteger);
+
+    fftPha;
+};
+
+)
+
+
+/*
+        TEST Weaver : HilbertWRe
+
+        Impulse Response
+*/
+(
+var size, dur, freq;
+var overSample, start;
+var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+
+// kernel size
+size = 2048;
+
+overSample = 2;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+plotDegMin = 0.0;
+plotDegMax = 180.0;
+
+start = size  - ((size/2).asInt) - s.options.blockSize;  // offset - for kernel normalized to sample delay
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+fork {
+	{ // real
+		HilbertWRe.ar(
+			Impulse.ar(freq), // imulse test, one pulse over fftbuffer size
+		size: size);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.copyRange(start, start+size-1);
+			arr.plot("Real; HilbertWRe; Impulse input", minval: -1, maxval: 1);
+		}
+		}
+	);
+
+	0.5.wait;
+
+	{ // plot magnitude - real
+		HilbertWRe.ar( // real
+			Impulse.ar(freq), // imulse test, one pulse over fftbuffer size
+		size: size);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.copyRange(start, start+size-1);
+			~calcMag.value(arr).ampdb.plot(
+				name: "Real Magnitude Response",
+				minval: plotDbMin,
+				maxval: plotDbMax
+			);
+		}
+		}
+	);
+
+}
+)
+
+/*
+        TEST Weaver : HilbertWRe
+
+        single cosine cycle: period = size
+*/
+
+(
+var size, dur, freq;
+var overSample, start;
+
+size = 2048;
+overSample = 3;
+// plot: jump to the 2nd cycle, to account for "warm up" of Im kernel
+start = 2 * size - s.options.blockSize;  // offset - to sync cycle
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+{ // real
+	HilbertWRe.ar(
+		SinOsc.ar(freq, pi/2), // cosine test, one cycle over fftbuffer size
+		size: size);
+}.loadToFloatArray(overSample * dur, s, {
+	|arr|
+	defer {
+		arr = arr.copyRange(start, start+size-1);
+		arr.plot("Real; HilbertWRe; Cosine input", minval: -1, maxval: 1);
+	}
+}
+);
+)
+::
