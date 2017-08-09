@@ -91,7 +91,7 @@ HilbertW {
 		^((out * mul) + add)
 	}
 
-	*arShift { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
+	*arSSB { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
 		var out, real, imag;
 		var quadOsc, delay, phaseOffset;
 
@@ -254,7 +254,7 @@ HilbertH {
 		^((out * mul) + add)
 	}
 
-	*arShift { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
+	*arSSB { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
 		var out, real, imag;
 		var quadOsc, delay, phaseOffset;
 
@@ -409,7 +409,7 @@ HilbertPDN {
 		^((out * mul) + add)
 	}
 
-	*arShift { |in, freq = 0.0, mul = 1, add = 0.0|
+	*arSSB { |in, freq = 0.0, mul = 1, add = 0.0|
 		var out, real, imag;
 		var quadOsc;
 
