@@ -1,5 +1,5 @@
 CLASS:: HilbertW
-summary:: Applies the Hilbert transform to an input signal.
+summary:: Applies the Hilbert Transform to an input signal.
 categories:: Libraries, UGens>Filters>Nonlinear
 related:: Overviews/Hilbert-Overview, Classes/HilbertWRe, Classes/HilbertWIm
 

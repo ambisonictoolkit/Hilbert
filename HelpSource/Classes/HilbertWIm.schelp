@@ -1,5 +1,5 @@
 CLASS:: HilbertWIm
-summary:: Applies the Imaginary part of the Hilbert transform to an input signal.
+summary:: Applies the Imaginary part of the Hilbert Transform to an input signal.
 categories:: Libraries, UGens>Filters>Nonlinear
 related:: Classes/HilbertW, Classes/HilbertWRe
 

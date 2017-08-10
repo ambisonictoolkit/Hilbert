@@ -1,5 +1,5 @@
 CLASS:: HilbertWRe
-summary:: Applies the Real part of the Hilbert transform to an input signal.
+summary:: Applies the Real part of the Hilbert Transform to an input signal.
 categories:: Libraries, UGens>Filters>Nonlinear
 related:: Classes/HilbertW, Classes/HilbertWIm
 
