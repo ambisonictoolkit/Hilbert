@@ -66,26 +66,6 @@ NOTE: FFT returns linear frequency
 
     fftMag;
 };
-
-
-~calcPha = { arg kernel;
-
-    var fftResponse, fftPha;
-
-    // FFT analysis here!
-    fftResponse = fft(
-        kernel.as(Signal),
-        Signal.newClear(kernel.size),
-        Signal.fftCosTable(kernel.size)
-    );
-
-    // find (& trim phase)
-    fftPha = fftResponse.phase;
-    fftPha = fftPha.copyFromStart((kernel.size/2).asInteger);
-
-    fftPha;
-};
-
 )
 
 
