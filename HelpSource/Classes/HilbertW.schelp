@@ -11,7 +11,7 @@ CLASSMETHODS::
 
 METHOD:: ar
 
-The Hilbert Transform, returning two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::, footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
+The Hilbert Transform, returning two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::,footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
 
 ARGUMENT:: in
 

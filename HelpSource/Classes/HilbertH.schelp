@@ -5,13 +5,13 @@ related:: Overviews/Hilbert-Overview, Classes/HilbertHRe, Classes/HilbertHIm
 
 DESCRIPTION::
 
-Offers the Hilbert and related transforms and analyses of an input signal via the technique described as emphasis::Hartley Phasing::,footnote::US Patent 1,666,206, Modulation System, April 17, 1928, United States Patent and Trademark Office.:: Weaver's emphasis::Second Method::. footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.::
+Offers the Hilbert and related transforms and analyses of an input signal via Weaver's emphasis::Second Method::,footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.:: known as emphasis::Hartley Phasing::.footnote::US Patent 1,666,206, Modulation System, April 17, 1928, United States Patent and Trademark Office.::
 
 CLASSMETHODS::
 
 METHOD:: ar
 
-The Hilbert Transform, returning two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::, footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
+The Hilbert Transform, returning two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::,footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
 
 ARGUMENT:: in
 
@@ -19,7 +19,7 @@ The input signal to transform.
 
 ARGUMENT:: size
 
-The size of the FFT used for emphasis::Weaver Half-Band:: filtering.
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
 ARGUMENT:: mul
 
@@ -47,7 +47,7 @@ Rotation angle, in radians.
 
 ARGUMENT:: size
 
-The size of the FFT used for emphasis::Weaver Half-Band:: filtering.
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
 ARGUMENT:: mul
 
@@ -74,7 +74,7 @@ Frequency to shift by. May be positive or negative.
 
 ARGUMENT:: size
 
-The size of the FFT used for emphasis::Weaver Half-Band:: filtering.
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
 ARGUMENT:: mul
 
@@ -99,7 +99,7 @@ The input signal to analyze.
 
 ARGUMENT:: size
 
-The size of the FFT used for emphasis::Weaver Half-Band:: filtering.
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
 ARGUMENT:: mul
 
@@ -123,7 +123,7 @@ The input signal to analyze.
 
 ARGUMENT:: size
 
-The size of the FFT used for emphasis::Weaver Half-Band:: filtering.
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
 ARGUMENT:: mul
 
