@@ -5,7 +5,7 @@ related:: Classes/HilbertW, Classes/HilbertWRe
 
 DESCRIPTION::
 
-Offers the Hilbert transform of an input signal via Weaver's emphasis::Third Method::. footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.::
+Offers the Hilbert Transform of an input signal via Weaver's emphasis::Third Method::. footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.::
 
 The Hilbert Transform, returning the second of two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::, footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
 
