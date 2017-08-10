@@ -183,42 +183,14 @@ HilbertH {
 
 	// calculate real coefficients as delayed impulse
 	*calcRealCoeffs { |size|
-		var half_win, xReal;
 
-		half_win = size/2;
-
-		// real response
-		xReal = Array.fill(size, { 0.0 });
-		xReal.put(half_win, 1.0);
-
-		^xReal
+		^HilbertHRe.calcCoeffs(size)
 	}
-
-	// // calculate real coefficients via sinc
-	// *calcRealCoeffs { |size|
-	// 	var half_win, window, xReal;
-	//
-	// 	half_win = size/2;
-	// 	window = Signal.hanningWindow(size+1);
-	//
-	// 	// imaginary response
-	// 	xReal = Array.series(size+1, half_win.neg, 1);
-	// 	xReal = xReal.collect({|i| (i == 0).if({ 1 }, { sin(pi * i) / (pi * i) }) }) * window;
-	//
-	// 	^xReal.keep(size)
-	// }
 
 	// calculate imag coefficients via (1-cos(t)) / t
 	*calcImagCoeffs { |size|
-		var half_win, window, xImag;
 
-		half_win = size/2;
-		window = Signal.hanningWindow(size+1);
-
-		// imaginary response
-		xImag = Array.series(size+1, half_win.neg, 1);
-		xImag = xImag.collect({|i| (i == 0).if({ 0 }, { 1 - cos(pi * i) / (pi * i) }) }) * window;
-		^xImag.keep(size);
+		^HilbertHIm.calcCoeffs(size)
 	}
 
 	*arMag { |in, size = 2048, mul = 1, add = 0.0|
@@ -290,12 +262,38 @@ HilbertHRe {
 	*arConv { |in, size=2048, mul=1.0, add=0.0|
 		var r, kernel_r;
 
-		r = HilbertH.calcRealCoeffs(size);
+		r = HilbertHRe.calcCoeffs(size);
 		kernel_r = LocalBuf(size, 1).set(r);
 
 		^Convolution2.ar(in, kernel_r, framesize: size, mul: mul, add: add);
 	}
 
+	// calculate real coefficients as delayed impulse
+	*calcCoeffs { |size|
+		var half_win, xReal;
+
+		half_win = size/2;
+
+		// real response
+		xReal = Array.fill(size, { 0.0 });
+		xReal.put(half_win, 1.0);
+
+		^xReal
+	}
+
+	// // calculate real coefficients via sinc
+	// *calcCoeffs { |size|
+	// 	var half_win, window, xReal;
+	//
+	// 	half_win = size/2;
+	// 	window = Signal.hanningWindow(size+1);
+	//
+	// 	// imaginary response
+	// 	xReal = Array.series(size+1, half_win.neg, 1);
+	// 	xReal = xReal.collect({|i| (i == 0).if({ 1 }, { sin(pi * i) / (pi * i) }) }) * window;
+	//
+	// 	^xReal.keep(size)
+	// }
 }
 
 
@@ -304,10 +302,23 @@ HilbertHIm {
 		| in, size=2048, mul=1.0, add=0.0 |
 		var i, kernel_i, image;
 
-		i = HilbertH.calcImagCoeffs(size);
+		i = HilbertHIm.calcCoeffs(size);
 		kernel_i = LocalBuf(size, 1).set(i);
 
 		^Convolution2.ar(in, kernel_i, framesize: size, mul: mul, add: add);
+	}
+
+	// calculate imag coefficients via (1-cos(t)) / t
+	*calcCoeffs { |size|
+		var half_win, window, xImag;
+
+		half_win = size/2;
+		window = Signal.hanningWindow(size+1);
+
+		// imaginary response
+		xImag = Array.series(size+1, half_win.neg, 1);
+		xImag = xImag.collect({|i| (i == 0).if({ 0 }, { 1 - cos(pi * i) / (pi * i) }) }) * window;
+		^xImag.keep(size);
 	}
 }
 
