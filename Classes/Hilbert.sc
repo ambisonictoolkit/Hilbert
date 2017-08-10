@@ -424,7 +424,8 @@ HilbertPDN {
 		var out, real, imag;
 		var quadOsc;
 
-		quadOsc = SinOsc.ar(freq, [pi/2, 0]);  // non-linear phase is uncompensated
+		quadOsc = SinOsc.ar(freq, [pi/2, 0]);
+		quadOsc = HilbertPDNRe.ar(quadOsc);  // compensate for non-linear phase
 
 		real = HilbertPDNRe.ar(in);
 		imag = HilbertPDNIm.ar(in);
