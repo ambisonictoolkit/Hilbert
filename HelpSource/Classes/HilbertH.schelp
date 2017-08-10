@@ -137,6 +137,23 @@ returns::
 
 emphasis::Instantaneous phase::, in radians.
 
+METHOD:: calcRealCoeffs
+
+Generate real coefficients.
+
+ARGUMENT:: size
+
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
+
+METHOD:: calcImagCoeffs
+
+Generate imaginary coefficients.
+
+ARGUMENT:: size
+
+The size of the kernel used for emphasis::Hartley Phasing:: filtering.
+
+
 
 SECTION:: Frequency response
 
@@ -149,7 +166,7 @@ The code::imag:: magnitude response may be regarded as bandpass, with notches at
 
 SUBSECTION:: Phase
 
-The code::real:: output of link::Classes/HilbertH:: returns a linear phase response. As a result, the output of the system as a whole is delayed in time. The total delay, in samples, can be calculated as code::size - blockSize::, where
+The code::real:: output of link::Classes/HilbertH:: returns a linear phase response. As a result, the output of the system as a whole is delayed in time. The total delay, in samples, can be calculated as code::size/2 + size - blockSize::, where
 link::Classes/ServerOptions#-blockSize#blockSize:: is the number of
 samples in one control period of the link::Classes/Server:: in use.
 
@@ -210,7 +227,7 @@ NOTE: FFT returns linear frequency
 
 
 /*
-		TEST Weaver : HilbertH
+		TEST Hartley : HilbertH
 
 		Impulse Response
 */
@@ -230,7 +247,7 @@ plotDbMax = 6.0;
 plotDegMin = 0.0;
 plotDegMax = 180.0;
 
-start = size  - ((size/2).asInt) - s.options.blockSize;  // offset - for kernel normalized to sample delay
+start = size - s.options.blockSize;  // offset - for kernel normalized to sample delay
 
 dur = size / s.sampleRate;  // in seconds
 freq = dur.reciprocal;
@@ -314,7 +331,7 @@ fork {
 )
 
 /*
-		TEST Weaver : HilbertH
+		TEST Hartley : HilbertH
 
 		single cosine cycle: period = size
 */
@@ -324,9 +341,9 @@ var size, dur, freq;
 var overSample, start;
 
 size = 2048;
-overSample = 3;
+overSample = 4;
 // plot: jump to the 2nd cycle, to account for "warm up" of Im kernel
-start = 2 * size - s.options.blockSize;  // offset - to sync cycle
+start = 2 * size + ((size/ 2).floor).asInt - s.options.blockSize;  // offset - to sync cycle
 
 dur = size / s.sampleRate;  // in seconds
 freq = dur.reciprocal;
@@ -351,7 +368,7 @@ SUBSECTION:: arRotate
 
 code::
 /*
-		TEST Weaver : *arRotate
+		TEST Hartley : *arRotate
 
 		single cosine cycle: period = size
 */
@@ -360,9 +377,9 @@ var size, dur, freq, angles;
 var overSample, start;
 
 size = 2048;
-overSample = 3;
+overSample = 4;
 // plot: jump to the 2nd cycle, to account for "warm up" of Im kernel
-start = 2 * size - s.options.blockSize;  // offset - to sync cycle
+start = 2 * size + ((size/ 2).floor).asInt - s.options.blockSize;  // offset - to sync cycle
 
 dur = size / s.sampleRate;  // in seconds
 freq = dur.reciprocal;
@@ -398,7 +415,7 @@ SUBSECTION:: arSSB
 
 code::
 /*
-		TEST Weaver : *arSSB
+		TEST Hartley : *arSSB
 
 		single cosine cycle: period = size
 */
@@ -407,9 +424,9 @@ var size, dur, freq, harmonics;
 var overSample, start;
 
 size = 2048;
-overSample = 3;
+overSample = 4;
 // plot: jump to the 2nd cycle, to account for "warm up" of Im kernel
-start = 2 * size - s.options.blockSize;  // offset - to sync cycle
+start = 2 * size + ((size/ 2).floor).asInt - s.options.blockSize;  // offset - to sync cycle
 
 dur = size / s.sampleRate;  // in seconds
 freq = dur.reciprocal;
@@ -448,7 +465,7 @@ SUBSECTION:: arMag
 
 code::
 /*
-		TEST Weaver : *arMag
+		TEST Hartley : *arMag
 
 		single cosine cycle: period = size
 */
@@ -458,9 +475,9 @@ var size, dur, freq, amps;
 var overSample, start;
 
 size = 2048;
-overSample = 3;
+overSample = 4;
 // plot: jump to the 2nd cycle, to account for "warm up" of Im kernel
-start = 2 * size - s.options.blockSize;  // offset - to sync cycle
+start = 2 * size + ((size/ 2).floor).asInt - s.options.blockSize;  // offset - to sync cycle
 
 dur = size / s.sampleRate;  // in seconds
 freq = dur.reciprocal;
@@ -496,7 +513,7 @@ SUBSECTION:: arPhase
 
 code::
 /*
-		TEST Weaver : *arPhase
+		TEST Hartley : *arPhase
 
 		single cosine cycle: period = size
 */
@@ -506,9 +523,9 @@ var size, dur, freq;
 var overSample, start;
 
 size = 2048;
-overSample = 3;
+overSample = 4;
 // plot: jump to the 2nd cycle, to account for "warm up" of Im kernel
-start = 2 * size - s.options.blockSize;  // offset - to sync cycle
+start = 2 * size + ((size/ 2).floor).asInt - s.options.blockSize;  // offset - to sync cycle
 
 dur = size / s.sampleRate;  // in seconds
 freq = dur.reciprocal;
@@ -525,5 +542,149 @@ freq = dur.reciprocal;
 	}
 }
 )
+)
+::
+
+SUBSECTION:: calcRealCoeffs
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+    var fftResponse, fftMag;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim magnitude)
+    fftMag = fftResponse.magnitude;
+    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+    fftMag;
+};
+)
+
+
+/*
+        TEST Hartley : *calcRealCoeffs
+
+        coefficients
+*/
+
+(
+var size;
+var kernel;
+var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+
+// kernel size
+size = 2048;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+plotDegMin = 0.0;
+plotDegMax = 180.0;
+
+
+// calculate coefficients
+kernel = HilbertH.calcRealCoeffs(size);
+
+// plot coefficients
+kernel.plot(
+	name: "Real Coefficients",
+	minval: -1,
+	maxval: 1
+);
+
+// plot magnitude
+~calcMag.value(kernel).ampdb.plot(
+	name: "Real Magnitude Response",
+	minval: plotDbMin,
+	maxval: plotDbMax
+);
+
+)
+::
+
+SUBSECTION:: calcImagCoeffs
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+    var fftResponse, fftMag;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim magnitude)
+    fftMag = fftResponse.magnitude;
+    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+    fftMag;
+};
+)
+
+
+/*
+        TEST Hartley : *calcImagCoeffs
+
+        coefficients
+*/
+
+(
+var size;
+var kernel;
+var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+
+// kernel size
+size = 2048;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+plotDegMin = 0.0;
+plotDegMax = 180.0;
+
+
+// calculate coefficients
+kernel = HilbertH.calcImagCoeffs(size);
+
+// plot coefficients
+kernel.plot(
+	name: "Imaginary Coefficients",
+	minval: -1,
+	maxval: 1
+);
+
+// plot magnitude
+~calcMag.value(kernel).ampdb.plot(
+	name: "Imaginary Magnitude Response",
+	minval: plotDbMin,
+	maxval: plotDbMax
+);
+
 )
 ::
