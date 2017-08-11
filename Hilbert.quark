@@ -1,10 +1,10 @@
 (
           name: "Hilbert",
-       summary: "Various implementations (both FIR and IIR) of the Hilbert transform.",
+       summary: "Various implementations of the Hilbert Transform and related functions.",
         author: "Jo Anderson, Michael McCrea",
      copyright: "Jo Anderson, Michael McCrea",
        license: "GPL",
-       version: "0.1.0",
+       version: "1.0.0",
         schelp: "Overviews/Hilbert-Overview",
           test: "",
            url: "https://github.com/mtmccrea/Hilbert",
@@ -12,5 +12,5 @@
 
                 ],
   isCompatible: true ,
-         since: ""
+         since: "2017"
 )
