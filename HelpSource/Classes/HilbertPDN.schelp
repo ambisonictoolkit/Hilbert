@@ -1,0 +1,514 @@
+CLASS:: HilbertPDN
+summary:: Applies the Hilbert transform to an input signal.
+categories:: Libraries, UGens>Filters>Nonlinear
+related:: Overviews/Hilbert-Overview, Classes/HilbertPDNRe, Classes/HilbertPDNIm
+
+DESCRIPTION::
+
+Offers the Hilbert and related transforms and analyses of an input signal via Weaver's emphasis::Second Method::,footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.:: known as emphasis::Hartley Phasing::,footnote::US Patent 1,666,206, Modulation System, April 17, 1928, United States Patent and Trademark Office.:: expressed as a 12th-order Phase Differencing Network.footnote::B. Hutchins, “The Design of Wideband Analog 90° Phase Differencing Networks without Large Spread of Capacitor Values”, Electronotes, Special Issue G, No. 168, http://electronotes.netfirms.com/EN168-90degreePDN.PDF, accessed 2017-08-08.::
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+The Hilbert Transform, returning two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::,footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
+
+ARGUMENT:: in
+
+The input signal to transform.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns:: An array of channels: code::[real, imag]::
+
+
+METHOD:: arRotate
+
+Rotate footnote::decrement:: the phase of the input.
+
+ARGUMENT:: in
+
+The input signal.
+
+ARGUMENT:: angle
+
+Rotation angle, in radians.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns:: Phase rotated input.
+
+
+METHOD:: arSSB
+
+Single-Sideband Modulate footnote::Aka, emphasis::frequency-shifting::.:: (SSB) the input.
+
+ARGUMENT:: in
+
+The input signal.
+
+ARGUMENT:: freq
+
+Frequency to shift by. May be positive or negative.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns::
+
+SSB modulated input.
+
+
+METHOD:: arMag
+
+Analyze the emphasis::instantaneous amplitude:: of the input.
+
+ARGUMENT:: in
+
+The input signal to analyze.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns::
+
+emphasis::Instantaneous amplitude::.
+
+METHOD:: arPhase
+
+Analyze the emphasis::instantaneous phase:: of the input.
+
+ARGUMENT:: in
+
+The input signal to analyze.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns::
+
+emphasis::Instantaneous phase::, in radians.
+
+
+SECTION:: Frequency response
+
+SUBSECTION:: Magnitude
+
+The both the code::real:: & code::imag:: outputs of link::Classes/HilbertPDN:: return an allpass magnitude response.
+
+SUBSECTION:: Phase
+
+The both the code::real:: & code::imag:: outputs of link::Classes/HilbertPDN:: return a nonlinear phase response, where code::imag:: is offset by code::-pi/2:: radians with respect to code::real::.
+
+
+EXAMPLES::
+
+SUBSECTION:: ar
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+	var fftResponse, fftMag;
+
+	// FFT analysis here!
+	fftResponse = fft(
+		kernel.as(Signal),
+		Signal.newClear(kernel.size),
+		Signal.fftCosTable(kernel.size)
+	);
+
+	// find (& trim magnitude)
+	fftMag = fftResponse.magnitude;
+	fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+	fftMag;
+};
+
+
+~calcPha = { arg kernel;
+
+	var fftResponse, fftPha;
+
+	// FFT analysis here!
+	fftResponse = fft(
+		kernel.as(Signal),
+		Signal.newClear(kernel.size),
+		Signal.fftCosTable(kernel.size)
+	);
+
+	// find (& trim phase)
+	fftPha = fftResponse.phase;
+	fftPha = fftPha.copyFromStart((kernel.size/2).asInteger);
+
+	fftPha;
+};
+
+)
+
+
+/*
+		TEST PDN : HilbertPDN
+
+		Impulse Response
+*/
+(
+var size, dur, freq;
+var overSample, start;
+var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+
+// kernel size
+size = 2048;
+
+overSample = 2;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+plotDegMin = nil;
+plotDegMax = nil;
+
+start = 0;  // offset - for kernel normalized to sample delay
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+fork {
+	{ // [real,imag]
+		HilbertPDN.ar(
+			Impulse.ar(freq, 0.5) // imulse test, one pulse over fftbuffer size
+		);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.clump(2).flop; // de-interleave
+			arr = arr.collect(_.copyRange(start, start+size-1));
+			arr.plot("[real, imag]; HilbertPDN; Impulse input", minval: -1, maxval: 1);
+		}
+	}
+	);
+
+	0.5.wait;
+
+	{ // plot magnitude - [real,imag]
+		HilbertPDN.ar(
+			Impulse.ar(freq, 0.5) // imulse test, one pulse over fftbuffer size
+		);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.clump(2).flop; // de-interleave
+			arr = arr.collect(_.copyRange(start, start+size-1));
+			[~calcMag.value(arr.at(0)), ~calcMag.value(arr.at(1))].ampdb.plot(
+				name: "Real & Imag Magnitude Response",
+				minval: plotDbMin,
+				maxval: plotDbMax
+			);
+		}
+	}
+	);
+
+	0.5.wait;
+
+	{ // plot magnitude - system
+		HilbertPDN.ar(
+			Impulse.ar(freq, 0.5) // imulse test, one pulse over fftbuffer size
+		);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.clump(2).flop; // de-interleave
+			arr = arr.collect(_.copyRange(start, start+size-1));
+			((Complex.new(~calcMag.value(arr.at(0)), ~calcMag.value(arr.at(1))).magnitude  / 2.sqrt).ampdb).plot(
+				name: "System Magnitude Response",
+				minval: plotDbMin,
+				maxval: plotDbMax
+			);
+		}
+	}
+	);
+
+	0.5.wait;
+
+	{ // plot phase difference - system
+		HilbertPDN.ar(
+			Impulse.ar(freq, 0.5) // imulse test, one pulse over fftbuffer size
+		);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.clump(2).flop; // de-interleave
+			arr = arr.collect(_.copyRange(start, start+size-1));
+			(~calcPha.value(arr.at(0)) - ~calcPha.value(arr.at(1))).raddeg.plot(
+				name: "System Phase Difference",
+				minval: plotDegMin,
+				maxval: plotDegMax
+			);
+		}
+	}
+	);
+
+}
+)
+
+/*
+		TEST PDN : HilbertPDN
+
+		single cosine cycle: period = size
+*/
+
+(
+var size, dur, freq;
+var overSample, start;
+
+size = 2048;
+overSample = 4;
+
+// plot: adjust "by hand":
+// 1) account for "warm up" of Re & Im
+// 2) account for non-linear phase response of PDN
+start = size + 779;  // size = 2048, sampleRate = 44100
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+{ // [real,imag]
+	HilbertPDN.ar(
+		SinOsc.ar(freq, pi/2) // cosine test, one cycle over size
+		);
+}.loadToFloatArray(overSample * dur, s, {
+	|arr|
+	defer {
+		arr = arr.clump(2).flop; // de-interleave
+		arr = arr.collect(_.copyRange(start, start+size-1));
+		arr.plot(format("[real, imag]; HilbertPDN; Cosine @ % Hz; SR: %", freq, s.sampleRate), minval: -1, maxval: 1);
+	}
+}
+);
+)
+::
+
+SUBSECTION:: arRotate
+
+code::
+/*
+		TEST PDN : *arRotate
+
+		single cosine cycle: period = size
+*/
+(
+var size, dur, freq, angles;
+var overSample, start;
+
+size = 2048;
+overSample = 4;
+
+// plot: adjust "by hand":
+// 1) account for "warm up" of Re & Im
+// 2) account for non-linear phase response of PDN
+start = size + 779;  // size = 2048, sampleRate = 44100
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+angles = Array.series(9, 0, pi/4);  // in radians
+
+{
+	angles.do(
+		{ arg angle, i;
+
+			{ // phase rotation
+				HilbertPDN.arRotate(
+					SinOsc.ar(freq, pi/2), // cosine test, one cycle over fftbuffer size
+					angle);
+			}.loadToFloatArray(overSample * dur, s, {
+				|arr|
+				defer {
+					arr = arr.copyRange(start, start+size-1);
+					arr.plot(format("HilbertPDN *arRotate; Angle = % degrees", angle.raddeg), minval: -1, maxval: 1);
+				}
+			}
+			);
+
+			0.5.wait;
+		}
+	)
+}.fork
+)
+::
+
+SUBSECTION:: arSSB
+
+code::
+/*
+		TEST PDN : *arSSB
+
+		single cosine cycle: period = size
+*/
+(
+var size, dur, freq, harmonics;
+var overSample, start;
+
+size = 2048;
+overSample = 4;
+
+// plot: adjust "by hand":
+// 1) account for "warm up" of Re & Im
+// 2) account for non-linear phase response of PDN
+start = size + 779;  // size = 2048, sampleRate = 44100
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+harmonics = 8;  // number of harmonics to SSB
+
+{
+	harmonics.do(
+		{ arg hNum;
+			var ssbFreq;
+
+			ssbFreq = hNum * freq;
+
+			{ // frequency shifting
+				HilbertPDN.arSSB(
+					SinOsc.ar(freq, pi/2), // cosine test, one cycle over fftbuffer size
+					ssbFreq);
+			}.loadToFloatArray(overSample * dur, s, {
+				|arr|
+				defer {
+					arr = arr.copyRange(start, start+size-1);
+					arr.plot(format("HilbertPDN *arSSB; Freq = % Hz", ssbFreq), minval: -1, maxval: 1);
+				}
+			}
+			);
+
+			0.5.wait;
+		}
+	)
+}.fork
+)
+::
+
+SUBSECTION:: arMag
+
+code::
+/*
+		TEST PDN : *arMag
+
+		single cosine cycle: period = size
+*/
+
+(
+var size, dur, freq, amps;
+var overSample, start;
+
+size = 2048;
+overSample = 4;
+
+// plot: adjust "by hand":
+// 1) account for "warm up" of Re & Im
+// 2) account for non-linear phase response of PDN
+start = size + 779;  // size = 2048, sampleRate = 44100
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+amps = Array.geom(9, 1, 0.5);  // amplitudes to test
+
+{
+	amps.do(
+		{ arg amp;
+
+			{ // frequency shifting
+				HilbertPDN.arMag(
+					SinOsc.ar(freq, pi/2, amp), // cosine test, one cycle over fftbuffer size
+					);
+			}.loadToFloatArray(overSample * dur, s, {
+				|arr|
+				defer {
+					arr = arr.copyRange(start, start+size-1);
+					arr = arr.ampdb;
+					arr.plot(format("HilbertPDN *arMag; Cosine input; Amp = % dB", amp.ampdb), minval: -48, maxval: 0);
+				}
+			}
+			);
+
+			0.5.wait;
+		}
+	)
+}.fork
+)
+::
+
+SUBSECTION:: arPhase
+
+code::
+/*
+		TEST PDN : *arPhase
+
+		single cosine cycle: period = size
+*/
+
+(
+var size, dur, freq;
+var overSample, start;
+
+size = 2048;
+overSample = 4;
+
+// plot: adjust "by hand":
+// 1) account for "warm up" of Re & Im
+// 2) account for non-linear phase response of PDN
+start = size + 779;  // size = 2048, sampleRate = 44100
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+{ // phase
+	HilbertPDN.arPhase(
+		SinOsc.ar(freq, pi/2), // cosine test, one cycle over fftbuffer size
+		);
+}.loadToFloatArray(overSample * dur, s, {
+	|arr|
+	defer {
+		arr = arr.copyRange(start, start+size-1);
+		arr.plot("HilbertPDN *arPhase; Cosine input", minval: -pi, maxval: pi);
+	}
+}
+)
+)
+::

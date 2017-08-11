@@ -1,0 +1,162 @@
+CLASS:: HilbertPDNIm
+summary:: Applies the Imaginary part of the Hilbert transform to an input signal.
+categories:: Libraries, UGens>Filters>Nonlinear
+related:: Classes/HilbertPDN, Classes/HilbertPDNRe
+
+DESCRIPTION::
+
+Offers the Hilbert Transform of an input signal via Weaver's emphasis::Second Method::,footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.:: known as emphasis::Hartley Phasing::,footnote::US Patent 1,666,206, Modulation System, April 17, 1928, United States Patent and Trademark Office.:: expressed as a 12th-order Phase Differencing Network.footnote::B. Hutchins, “The Design of Wideband Analog 90° Phase Differencing Networks without Large Spread of Capacitor Values”, Electronotes, Special Issue G, No. 168, http://electronotes.netfirms.com/EN168-90degreePDN.PDF, accessed 2017-08-08.::
+
+The Hilbert Transform, returning the second of two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::, footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
+
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: in
+
+The input signal to transform.
+
+ARGUMENT:: mul
+
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+
+This value will be added to the output.
+
+returns:: The imaginary part of the Hilbert Transform.
+
+
+SECTION:: Frequency response
+
+Please review the discussion link::Classes/HilbertPDN#Frequency%20response#found here::.
+
+
+EXAMPLES::
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+    var fftResponse, fftMag;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim magnitude)
+    fftMag = fftResponse.magnitude;
+    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+    fftMag;
+};
+)
+
+
+/*
+        TEST PDN : HilbertPDNIm
+
+        Impulse Response
+*/
+(
+var size, dur, freq;
+var overSample, start;
+var plotDbMin, plotDbMax;
+
+// kernel size
+size = 2048;
+
+overSample = 2;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+
+start = 0;  // offset - for kernel normalized to sample delay
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+fork {
+	{ // imaginary
+		HilbertPDNIm.ar(
+			Impulse.ar(freq, 0.5) // imulse test, one pulse over fftbuffer size
+		);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.copyRange(start, start+size-1);
+			arr.plot("Imaginary; HilbertPDNIm; Impulse input", minval: -1, maxval: 1);
+		}
+		}
+	);
+
+	0.5.wait;
+
+	{ // plot magnitude - imaginary
+		HilbertPDNIm.ar( // imaginary
+			Impulse.ar(freq, 0.5) // imulse test, one pulse over fftbuffer size
+		);
+	}.loadToFloatArray(overSample * dur, s, {
+		|arr|
+		defer {
+			arr = arr.copyRange(start, start+size-1);
+			~calcMag.value(arr).ampdb.plot(
+				name: "Imaginary Magnitude Response",
+				minval: plotDbMin,
+				maxval: plotDbMax
+			);
+		}
+		}
+	);
+
+}
+)
+
+/*
+        TEST PDN : HilbertPDNIm
+
+        single cosine cycle: period = size
+*/
+
+(
+var size, dur, freq;
+var overSample, start;
+
+size = 2048;
+overSample = 4;
+
+// plot: adjust "by hand":
+// 1) account for "warm up" of Re & Im
+// 2) account for non-linear phase response of PDN
+start = size + 779;  // size = 2048, sampleRate = 44100
+
+dur = size / s.sampleRate;  // in seconds
+freq = dur.reciprocal;
+
+{ // imaginary
+	HilbertPDNIm.ar(
+		SinOsc.ar(freq, pi/2), // cosine test, one cycle over fftbuffer size
+		);
+}.loadToFloatArray(overSample * dur, s, {
+	|arr|
+	defer {
+		arr = arr.copyRange(start, start+size-1);
+		arr.plot("Imaginary; HilbertPDNIm; Cosine input", minval: -1, maxval: 1);
+	}
+}
+);
+)
+::
