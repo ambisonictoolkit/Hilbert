@@ -3,11 +3,40 @@ summary:: Various implementations of the Hilbert Transform and related functions
 categories:: Libraries>Hilbert
 
 section:: Introduction
-The Hilbert transform is offered in various forms for your choosing
+The Hilbert Transform is offered in various forms:
+
 LIST::
-##link::Classes/HilbertW:: - The Weaver method: A well behaved phase response, uses FFT processing internally (code::PV_BrickWall::), therefore incurs a delay.
-##link::Classes/HilbertH:: - The Hartley method: Uses an FIR filter, has a good magnitude response though incurs a delay.
-##link::Classes/HilbertPDN:: - A Phase Delay Network (PDN): uses an IIR filter, "real-time", but with a non-optimal magnitude response near the edges of the passband.
+##link::Classes/HilbertW:: - via Weaver's emphasis::Third Method::.
+##link::Classes/HilbertH:: - via Weaver's emphasis::Second Method::, known as emphasis::Hartley Phasing::.
+##link::Classes/HilbertPDN:: - via emphasis::Hartley Phasing::, expressed as a 12th-order Phase Differencing Network.
 ::
 
-Additionally, each class offers a pseudo-UGen for returning just the real or imaginary signal independently by appending strong::Re:: or strong::Im::, respectively, to the class name. E.g. code::HilbertWRe::, code::HilbertWIm::.
+These link::Guides/WritingUGens#Pseudo-UGens#pseudo-UGens:: return link::https://ccrma.stanford.edu/~jos/st/In_Phase_Quadrature_Sinusoidal.html##phase-quadrature:: outputs in a form suitable for use as an link::https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html##analytic signal::. Each form offers separate pseudo-UGens for returning just the emphasis::real:: or emphasis::imaginary:: output independently by appending strong::Re:: or strong::Im::, respectively, to the class name. E.g., link::Classes/HilbertWRe:: & link::Classes/HilbertWIm::.
+
+Additionally, each class includes further Hilbert related transforms and analyses:
+
+LIST::
+## Phase Rotation
+## link::https://en.wikipedia.org/wiki/Single-sideband_modulation##Single-Sideband Modulation (SSB)::
+## Instantaneous Amplitude Analysis
+## Instantaneous Phase Analysis
+::
+
+SECTION:: Further Reading
+
+Ansari, R. “IIR Discrete-Time Hilbert Transformers.” Acoustics, Speech and Signal Processing, IEEE Transactions On, vol. 35, no. 8, 1987, pp. 1116–1119.
+
+Hutchins, B. “Calculation of the Poles of 90° Phase Difference Networks [after Weaver]”
+in Musical Engineer's Handbook: Musical Engineering for Electronic Music. Ithaca, NY: Electronotes. 1975. http://electronotes.netfirms.com/MEHCh6aPart.PDF, accessed 2017-08-08.
+
+Hutchins, B. “The Design of Wideband Analog 90° Phase Differencing Networks without Large Spread of Capacitor Values”, Electronotes, Special Issue G, No. 168, http://electronotes.netfirms.com/EN168-90degreePDN.PDF, accessed 2017-08-08.
+
+Picinbono, B. “On Instantaneous Amplitude and Phase of Signals.” Signal Processing, IEEE Transactions On, vol. 45, no. 3, 1997, pp. 552–560.
+
+Schüssler, H., and W. Steffen. “Halfband Filters and Hilbert Transformers.” Circuits, Systems and Signal Processing, vol. 17, no. 2, 1998, pp. 137–164.
+
+Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.
+
+Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.
+
+US Patent 1,666,206, Modulation System, April 17, 1928, United States Patent and Trademark Office.
