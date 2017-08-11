@@ -89,7 +89,7 @@ NOTE: FFT returns linear frequency
 (
 var size, dur, freq;
 var overSample, start;
-var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+var plotDbMin, plotDbMax;
 
 // kernel size
 size = 2048;
@@ -99,8 +99,6 @@ overSample = 2;
 // plot params
 plotDbMin = -60.0;
 plotDbMax = 6.0;
-plotDegMin = 0.0;
-plotDegMax = 180.0;
 
 start = size - s.options.blockSize;  // offset - for kernel normalized to sample delay
 
@@ -216,7 +214,7 @@ NOTE: FFT returns linear frequency
 (
 var size;
 var kernel;
-var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+var plotDbMin, plotDbMax;
 
 // kernel size
 size = 2048;
@@ -224,8 +222,6 @@ size = 2048;
 // plot params
 plotDbMin = -60.0;
 plotDbMax = 6.0;
-plotDegMin = 0.0;
-plotDegMax = 180.0;
 
 
 // calculate coefficients
