@@ -1,6 +1,6 @@
-title:: The Hilbert Transform
-summary:: Various implementations of the Hilbert transform.
-categories:: Libraries
+title:: The Hilbert Transform Library
+summary:: Various implementations of the Hilbert Transform and related functions.
+categories:: Libraries>Hilbert
 
 section:: Introduction
 The Hilbert transform is offered in various forms for your choosing

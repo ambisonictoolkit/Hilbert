@@ -1,11 +1,13 @@
 CLASS:: HilbertW
-summary:: Applies the Hilbert Transform to an input signal.
-categories:: Libraries, UGens>Filters>Nonlinear
+summary:: Applies the Hilbert Transform to an input signal. [1]
+categories:: Libraries>Hilbert>Pseudo-UGens, UGens>Filters>Nonlinear
 related:: Overviews/Hilbert-Overview, Classes/HilbertWRe, Classes/HilbertWIm
 
 DESCRIPTION::
 
 Offers the Hilbert and related transforms and analyses of an input signal via Weaver's emphasis::Third Method::. footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.::
+
+[1] this is a composite pseudo UGen. link::Classes/HilbertW:: is built with link::Classes/DelayN::, link::Classes/Delay1::, link::Classes/Delay2::, link::Classes/Impulse::, link::Classes/LocalBuf::, link::Classes/FFT::, link::Classes/IFFT::, and link::Classes/PV_BrickWall::. Method link::#*arSSB:: also includes link::Classes/SinOsc::.
 
 CLASSMETHODS::
 

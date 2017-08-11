@@ -1,6 +1,6 @@
 CLASS:: HilbertWIm
-summary:: Applies the Imaginary part of the Hilbert Transform to an input signal.
-categories:: Libraries, UGens>Filters>Nonlinear
+summary:: Applies the Imaginary part of the Hilbert Transform to an input signal. [1]
+categories:: Libraries>Hilbert>Pseudo-UGens, UGens>Filters>Nonlinear
 related:: Classes/HilbertW, Classes/HilbertWRe
 
 DESCRIPTION::
@@ -9,6 +9,7 @@ Offers the Hilbert Transform of an input signal via Weaver's emphasis::Third Met
 
 The Hilbert Transform, returning the second of two signals in emphasis::phase-quadrature::. Considered as a complex emphasis::analytic signal::, footnote::Smith, J.O. “Analytic Signals and Hilbert Transform Filters”, in Mathematics of the Discrete Fourier Transform (DFT) with Audio Applications, Second Edition, https://ccrma.stanford.edu/~jos/st/Analytic_Signals_Hilbert_Transform.html, online book, 2007 edition, accessed 2017-08-08.:: the first may be regarded as the emphasis::real:: component and the second as the emphasis::imaginary::.
 
+[1] this is a composite pseudo UGen. link::Classes/HilbertWIm:: is built with link::Classes/Delay1::, link::Classes/Delay2::, link::Classes/Impulse::, link::Classes/LocalBuf::, link::Classes/FFT::, link::Classes/IFFT::, and link::Classes/PV_BrickWall::.
 
 CLASSMETHODS::
 

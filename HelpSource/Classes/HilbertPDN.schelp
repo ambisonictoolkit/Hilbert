@@ -1,11 +1,14 @@
 CLASS:: HilbertPDN
-summary:: Applies the Hilbert transform to an input signal.
-categories:: Libraries, UGens>Filters>Nonlinear
+summary:: Applies the Hilbert Transform to an input signal. [1]
+categories:: Libraries>Hilbert>Pseudo-UGens, UGens>Filters>Nonlinear
 related:: Overviews/Hilbert-Overview, Classes/HilbertPDNRe, Classes/HilbertPDNIm
 
 DESCRIPTION::
 
 Offers the Hilbert and related transforms and analyses of an input signal via Weaver's emphasis::Second Method::,footnote::Weaver, Donald. “A Third Method of Generation and Detection of Single-Sideband Signals.” Proceedings of the IRE, vol. 44, no. 12, 1956, pp. 1703–1705.:: known as emphasis::Hartley Phasing::,footnote::US Patent 1,666,206, Modulation System, April 17, 1928, United States Patent and Trademark Office.:: expressed as a 12th-order Phase Differencing Network.footnote::B. Hutchins, “The Design of Wideband Analog 90° Phase Differencing Networks without Large Spread of Capacitor Values”, Electronotes, Special Issue G, No. 168, http://electronotes.netfirms.com/EN168-90degreePDN.PDF, accessed 2017-08-08.::
+
+[1] this is a composite pseudo UGen. link::Classes/HilbertPDN:: is built with link::Classes/SOS::. Method link::#*arSSB:: also includes link::Classes/SinOsc::.
+
 
 CLASSMETHODS::
 
