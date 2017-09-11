@@ -49,16 +49,25 @@ HilbertWRe and HilbertWIm, respectively.
 
 HilbertW {
 
-	*ar { |in, size = 2048, mul = 1, add = 0.0|
-
-		^[
-			HilbertWRe.ar(in, size, mul, add),
-			HilbertWIm.ar(in, size, mul, add),
-		]
-
+	*ar { |in, size = 2048, mul = 1, add = 0|
+		(in.rank == 0).if({
+			^[
+				HilbertWRe.ar(in, size, mul, add),
+				HilbertWIm.ar(in, size, mul, add)
+			]
+		}, {
+			^in.deepCollect(
+				in.maxDepth, {arg item;
+					[
+						HilbertWRe.ar(item, size, mul, add),
+						HilbertWIm.ar(item, size, mul, add)
+					]
+				}
+			)
+		})
 	}
 
-	*arMag { |in, size = 2048, mul = 1, add = 0.0|
+	*arMag { |in, size = 2048, mul = 1, add = 0|
 		var mag, real, imag;
 
 		real = HilbertWRe.ar(in, size);
@@ -69,7 +78,7 @@ HilbertW {
 		^((mag * mul) + add)
 	}
 
-	*arPhase { |in, size = 2048, mul = 1, add = 0.0|
+	*arPhase { |in, size = 2048, mul = 1, add = 0|
 		var phase, real, imag;
 
 		real = HilbertWRe.ar(in, size);
@@ -80,7 +89,7 @@ HilbertW {
 		^((phase * mul) + add)
 	}
 
-	*arRotate { |in, angle = 0.0, size = 2048, mul = 1, add = 0.0|
+	*arRotate { |in, angle = 0.0, size = 2048, mul = 1, add = 0|
 		var out, real, imag;
 
 		real = HilbertWRe.ar(in, size);
@@ -91,7 +100,7 @@ HilbertW {
 		^((out * mul) + add)
 	}
 
-	*arSSB { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
+	*arSSB { |in, freq = 0.0, size = 2048, mul = 1, add = 0|
 		var out, real, imag;
 		var quadOsc, delay, phaseOffset;
 
@@ -112,7 +121,7 @@ HilbertW {
 
 HilbertWRe {
 
-	*ar { |in, size = 2048, mul = 1, add = 0.0|
+	*ar { |in, size = 2048, mul = 1, add = 0|
 		var del = (size - BlockSize.ir) / SampleRate.ir;
 		^DelayN.ar(in, del, del, mul, add)
 	}
@@ -120,7 +129,7 @@ HilbertWRe {
 
 HilbertWIm {
 
-	*ar { |in, size = 2048, mul = 1, add = 0.0|
+	*ar { |in, size = 2048, mul = 1, add = 0|
 		var nyqDiv2, cos, sin, inputDbl, sinBr, cosBr, out;
 
 		// quadrature oscillators at nyquist/2
@@ -130,30 +139,63 @@ HilbertWIm {
 		sin = Delay1.ar(cos);
 		inputDbl = in * 2;
 
-		// cosine and sine branches using brickwall for lowpass at nyquist/2
-		cosBr = IFFT.ar(
-			PV_BrickWall(
-				FFT(
-					LocalBuf(size),
-					inputDbl * cos
-				),
-				-0.5
-			)
-		);
+		(in.rank == 0).if({
+			// cosine and sine branches using brickwall for lowpass at nyquist/2
+			cosBr = IFFT.ar(
+				PV_BrickWall(
+					FFT.new(
+						LocalBuf.new(size),
+						inputDbl * cos
+					),
+					-0.5
+				)
+			);
 
-		sinBr = IFFT.ar(
-			PV_BrickWall(
-				FFT(
-					LocalBuf(size),
-					inputDbl * sin
-				),
-				-0.5
-			)
-		);
+			sinBr = IFFT.ar(
+				PV_BrickWall(
+					FFT.new(
+						LocalBuf.new(size),
+						inputDbl * sin
+					),
+					-0.5
+				)
+			);
 
-		// modulate and sum
-		out = ([cosBr, sinBr] * [sin, cos.neg]).sum
-		^((out * mul) + add)
+			// modulate and sum
+			out = ([cosBr, sinBr] * [sin, cos.neg]).sum;
+			^((out * mul) + add)
+		}, {
+			^inputDbl.deepCollect(
+				inputDbl.maxDepth, {arg item;
+					// cosine and sine branches using brickwall for lowpass at nyquist/2
+					cosBr = IFFT.ar(
+						PV_BrickWall(
+							FFT.new(
+								LocalBuf.new(size),
+								item * cos
+							),
+							-0.5
+						)
+					);
+
+					sinBr = IFFT.ar(
+						PV_BrickWall(
+							FFT.new(
+								LocalBuf.new(size),
+								item * sin
+							),
+							-0.5
+						)
+					);
+
+					// modulate and sum
+					out = ([cosBr, sinBr] * [sin, cos.neg]).sum;
+
+					// returned value
+					((out * mul) + add)
+				}
+			)
+		})
 	}
 }
 
@@ -171,14 +213,22 @@ Kernel is rendered to sample delay.
 
 HilbertH {
 
-	*ar { |in, size=2048, mul=1.0, add=0.0|
-		var r, kernel_r, real;
-
-		^[
-			HilbertHRe.ar(in, size, mul, add),
-			HilbertHIm.ar(in, size, mul, add)
-		]
-
+	*ar { |in, size = 2048, mul=1, add=0|
+		(in.rank == 0).if({
+			^[
+				HilbertHRe.ar(in, size, mul, add),
+				HilbertHIm.ar(in, size, mul, add)
+			]
+		}, {
+			^in.deepCollect(
+				in.maxDepth, {arg item;
+					[
+						HilbertHRe.ar(item, size, mul, add),
+						HilbertHIm.ar(item, size, mul, add)
+					]
+				}
+			)
+		})
 	}
 
 	// calculate real coefficients as delayed impulse
@@ -193,7 +243,7 @@ HilbertH {
 		^HilbertHIm.calcCoeffs(size)
 	}
 
-	*arMag { |in, size = 2048, mul = 1, add = 0.0|
+	*arMag { |in, size = 2048, mul = 1, add = 0|
 		var mag, real, imag;
 
 		real = HilbertHRe.ar(in, size);
@@ -204,7 +254,7 @@ HilbertH {
 		^((mag * mul) + add)
 	}
 
-	*arPhase { |in, size = 2048, mul = 1, add = 0.0|
+	*arPhase { |in, size = 2048, mul = 1, add = 0|
 		var phase, real, imag;
 
 		real = HilbertHRe.ar(in, size);
@@ -215,7 +265,7 @@ HilbertH {
 		^((phase * mul) + add)
 	}
 
-	*arRotate { |in, angle = 0.0, size = 2048, mul = 1, add = 0.0|
+	*arRotate { |in, angle = 0.0, size = 2048, mul = 1, add = 0|
 		var out, real, imag;
 
 		real = HilbertHRe.ar(in, size);
@@ -226,7 +276,7 @@ HilbertH {
 		^((out * mul) + add)
 	}
 
-	*arSSB { |in, freq = 0.0, size = 2048, mul = 1, add = 0.0|
+	*arSSB { |in, freq = 0.0, size = 2048, mul = 1, add = 0|
 		var out, real, imag;
 		var quadOsc, delay, phaseOffset;
 
@@ -263,7 +313,7 @@ HilbertHRe {
 		var r, kernel_r;
 
 		r = HilbertHRe.calcCoeffs(size);
-		kernel_r = LocalBuf(size, 1).set(r);
+		kernel_r = LocalBuf.new(size, 1).set(r);
 
 		^Convolution2.ar(in, kernel_r, framesize: size, mul: mul, add: add);
 	}
@@ -303,7 +353,7 @@ HilbertHIm {
 		var i, kernel_i, image;
 
 		i = HilbertHIm.calcCoeffs(size);
-		kernel_i = LocalBuf(size, 1).set(i);
+		kernel_i = LocalBuf.new(size, 1).set(i);
 
 		^Convolution2.ar(in, kernel_i, framesize: size, mul: mul, add: add);
 	}
@@ -358,11 +408,22 @@ Signal Processing, vol. 17, no. 2, 1998, pp. 137–164.
 
 HilbertPDN {
 
-	*ar { |in, mul = 1.0, add = 0.0|
-		^[
-			HilbertPDNRe.ar(in, mul, add),
-			HilbertPDNIm.ar(in, mul, add)
-		]
+	*ar { |in, mul = 1.0, add = 0|
+		(in.rank == 0).if({
+			^[
+				HilbertPDNRe.ar(in, mul, add),
+				HilbertPDNIm.ar(in, mul, add)
+			]
+		}, {
+			^in.deepCollect(
+				in.maxDepth, {arg item;
+					[
+						HilbertPDNRe.ar(item, mul, add),
+						HilbertPDNIm.ar(item, mul, add)
+					]
+				}
+			)
+		})
 	}
 
 	*calcSOSCoefs { |poles|
@@ -387,7 +448,7 @@ HilbertPDN {
 		^[b1, b2]
 	}
 
-	*arMag { |in, mul = 1, add = 0.0|
+	*arMag { |in, mul = 1, add = 0|
 		var mag, real, imag;
 
 		real = HilbertPDNRe.ar(in);
@@ -398,7 +459,7 @@ HilbertPDN {
 		^((mag * mul) + add)
 	}
 
-	*arPhase { |in, mul = 1, add = 0.0|
+	*arPhase { |in, mul = 1, add = 0|
 		var phase, real, imag;
 
 		real = HilbertPDNRe.ar(in);
@@ -409,7 +470,7 @@ HilbertPDN {
 		^((phase * mul) + add)
 	}
 
-	*arRotate { |in, angle = 0.0, mul = 1, add = 0.0|
+	*arRotate { |in, angle = 0.0, mul = 1, add = 0|
 		var out, real, imag;
 
 		real = HilbertPDNRe.ar(in);
@@ -420,7 +481,7 @@ HilbertPDN {
 		^((out * mul) + add)
 	}
 
-	*arSSB { |in, freq = 0.0, mul = 1, add = 0.0|
+	*arSSB { |in, freq = 0.0, mul = 1, add = 0|
 		var out, real, imag;
 		var quadOsc;
 
@@ -437,7 +498,7 @@ HilbertPDN {
 }
 
 HilbertPDNRe {
-	*ar { |in, mul = 1.0, add = 0.0|
+	*ar { |in, mul = 1.0, add = 0|
 		var b1, b2, hilbertCos;
 		var poles;
 
@@ -459,7 +520,7 @@ HilbertPDNRe {
 }
 
 HilbertPDNIm {
-	*ar { |in, mul = 1.0, add = 0.0|
+	*ar { |in, mul = 1.0, add = 0|
 		var b1, b2, hilbertSin;
 		var poles;
 
