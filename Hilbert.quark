@@ -4,10 +4,10 @@
         author: "Jo Anderson, Michael McCrea",
      copyright: "Jo Anderson, Michael McCrea",
        license: "GPL",
-       version: "1.0.0",
+       version: "0.1.0",
         schelp: "Overviews/Hilbert-Overview",
           test: "",
-           url: "https://github.com/mtmccrea/Hilbert",
+           url: "https://github.com/ambisonictoolkit/Hilbert",
   dependencies: [
 
                 ],
