@@ -424,6 +424,44 @@ harmonics = 8;  // number of harmonics to SSB
 	)
 }.fork
 )
+
+/*
+		Sideband control: upper and lower bands
+*/
+
+// Build simple spectrum with a rolloff to shift in frequency
+(
+d = SynthDef(\help_HilbertPDN_ssb, { |out=0, frq=1000, shft=5000, amp=1|
+    var sig;
+    sig = Mix.ar(
+        5.collect{|i|
+            SinOsc.ar(frq * (i+1), mul: 5.reciprocal * (i+1).reciprocal)
+        }
+    );
+
+    Out.ar( out,
+        HilbertPDN.arSSB(
+            sig,
+            freq: shft,
+            mul: amp,
+        )
+    )
+}).add
+)
+
+// Play the synth to a bus
+b = Bus.audio(s, 1);
+x = Synth(\help_HilbertPDN_ssb, [\out, b.index, \frq, 400, \shft, 3000, \amp, 0.5]);
+
+// View the spectrum
+f = s.freqscope();
+f.scope.inBus_(b.index);
+
+x.set(\shft, -3000);    // lower sidebands: negative freqency shift
+x.set(\shft, 3000);     // upper sidebands
+
+// Cleanup
+[x, b].do(_.free); f.window.close;
 ::
 
 SUBSECTION:: arMag
