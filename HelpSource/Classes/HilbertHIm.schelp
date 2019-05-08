@@ -33,6 +33,9 @@ This value will be added to the output.
 
 returns:: The imaginary part of the Hilbert Transform.
 
+NOTE::The kernel used for emphasis::Hartley Phasing:: filtering is windowed with the link::Classes/Signal#*kaiserWindow::, where emphasis::alpha:: is set to 1.::
+
+
 METHOD:: calcCoeffs
 
 Generate imaginary coefficients.
@@ -40,6 +43,17 @@ Generate imaginary coefficients.
 ARGUMENT:: size
 
 The size of the kernel used for emphasis::Hartley Phasing:: filtering.
+
+DISCUSSION::
+
+WARNING::To be deprecated! Use link::Classes/Signal#*hilbert#Signal *hilbert.imag:: instead.::
+
+code::
+(
+var size = 1000;
+(Signal.kaiserWindow(size, a: 1) * Signal.hilbert(size).imag).plot("Hilbert Imaginary Coefficients")
+)
+::
 
 
 
@@ -172,75 +186,5 @@ freq = dur.reciprocal;
 	}
 }
 );
-)
-::
-
-SUBSECTION:: caclCoeffs
-
-code::
-/*
-
-FFT analysis functions
-
-NOTE: FFT returns linear frequency
-
-*/
-(
-~calcMag = { arg kernel;
-
-    var fftResponse, fftMag;
-
-    // FFT analysis here!
-    fftResponse = fft(
-        kernel.as(Signal),
-        Signal.newClear(kernel.size),
-        Signal.fftCosTable(kernel.size)
-    );
-
-    // find (& trim magnitude)
-    fftMag = fftResponse.magnitude;
-    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
-
-    fftMag;
-};
-)
-
-
-/*
-        TEST Hartley : *calcCoeffs
-
-        coefficients
-*/
-
-(
-var size;
-var kernel;
-var plotDbMin, plotDbMax;
-
-// kernel size
-size = 2048;
-
-// plot params
-plotDbMin = -60.0;
-plotDbMax = 6.0;
-
-
-// calculate coefficients
-kernel = HilbertHIm.calcCoeffs(size);
-
-// plot coefficients
-kernel.plot(
-	name: "Imaginary Coefficients",
-	minval: -1,
-	maxval: 1
-);
-
-// plot magnitude
-~calcMag.value(kernel).ampdb.plot(
-	name: "Imaginary Magnitude Response",
-	minval: plotDbMin,
-	maxval: plotDbMax
-);
-
 )
 ::
