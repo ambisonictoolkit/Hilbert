@@ -34,10 +34,6 @@ This value will be added to the output.
 returns:: An array of channels: code::[real, imag]::
 
 
-NOTE::The kernel used for emphasis::Hartley Phasing:: filtering is windowed with the link::Classes/Signal#*kaiserWindow::, where emphasis::alpha:: is set to 1.::
-
-
-
 METHOD:: arRotate
 
 Rotate footnote::decrement:: the phase of the input.
@@ -143,7 +139,6 @@ returns::
 
 emphasis::Instantaneous phase::, in radians.
 
-
 METHOD:: calcRealCoeffs
 
 Generate real coefficients.
@@ -152,15 +147,6 @@ ARGUMENT:: size
 
 The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
-DISCUSSION::
-
-WARNING::To be deprecated! Use link::Classes/Signal#*hilbert#Signal *hilbert.real:: instead.::
-
-code::
-Signal.hilbert(1000).real.plot("Hilbert Real Coefficients")
-::
-
-
 METHOD:: calcImagCoeffs
 
 Generate imaginary coefficients.
@@ -168,17 +154,6 @@ Generate imaginary coefficients.
 ARGUMENT:: size
 
 The size of the kernel used for emphasis::Hartley Phasing:: filtering.
-
-DISCUSSION::
-
-WARNING::To be deprecated! Use link::Classes/Signal#*hilbert#Signal *hilbert.imag:: instead.::
-
-code::
-(
-var size = 1000;
-(Signal.kaiserWindow(size, a: 1) * Signal.hilbert(size).imag).plot("Hilbert Imaginary Coefficients")
-)
-::
 
 
 
@@ -608,5 +583,149 @@ freq = dur.reciprocal;
 	}
 }
 )
+)
+::
+
+SUBSECTION:: calcRealCoeffs
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+    var fftResponse, fftMag;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim magnitude)
+    fftMag = fftResponse.magnitude;
+    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+    fftMag;
+};
+)
+
+
+/*
+        TEST Hartley : *calcRealCoeffs
+
+        coefficients
+*/
+
+(
+var size;
+var kernel;
+var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+
+// kernel size
+size = 2048;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+plotDegMin = 0.0;
+plotDegMax = 180.0;
+
+
+// calculate coefficients
+kernel = HilbertH.calcRealCoeffs(size);
+
+// plot coefficients
+kernel.plot(
+	name: "Real Coefficients",
+	minval: -1,
+	maxval: 1
+);
+
+// plot magnitude
+~calcMag.value(kernel).ampdb.plot(
+	name: "Real Magnitude Response",
+	minval: plotDbMin,
+	maxval: plotDbMax
+);
+
+)
+::
+
+SUBSECTION:: calcImagCoeffs
+
+code::
+/*
+
+FFT analysis functions
+
+NOTE: FFT returns linear frequency
+
+*/
+(
+~calcMag = { arg kernel;
+
+    var fftResponse, fftMag;
+
+    // FFT analysis here!
+    fftResponse = fft(
+        kernel.as(Signal),
+        Signal.newClear(kernel.size),
+        Signal.fftCosTable(kernel.size)
+    );
+
+    // find (& trim magnitude)
+    fftMag = fftResponse.magnitude;
+    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
+
+    fftMag;
+};
+)
+
+
+/*
+        TEST Hartley : *calcImagCoeffs
+
+        coefficients
+*/
+
+(
+var size;
+var kernel;
+var plotDbMin, plotDbMax, plotDegMin, plotDegMax;
+
+// kernel size
+size = 2048;
+
+// plot params
+plotDbMin = -60.0;
+plotDbMax = 6.0;
+plotDegMin = 0.0;
+plotDegMax = 180.0;
+
+
+// calculate coefficients
+kernel = HilbertH.calcImagCoeffs(size);
+
+// plot coefficients
+kernel.plot(
+	name: "Imaginary Coefficients",
+	minval: -1,
+	maxval: 1
+);
+
+// plot magnitude
+~calcMag.value(kernel).ampdb.plot(
+	name: "Imaginary Magnitude Response",
+	minval: plotDbMin,
+	maxval: plotDbMax
+);
+
 )
 ::
