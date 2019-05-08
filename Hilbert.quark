@@ -4,13 +4,11 @@
         author: "Jo Anderson, Michael McCrea",
      copyright: "Jo Anderson, Michael McCrea",
        license: "GPL",
-       version: "0.1.0",
+       version: "0.1.1",
         schelp: "Overviews/Hilbert-Overview",
           test: "",
            url: "https://github.com/ambisonictoolkit/Hilbert",
-  dependencies: [
-
-                ],
+  dependencies: [ "https://github.com/ambisonictoolkit/SignalBox" ],
   isCompatible: true ,
          since: "2017"
 )
