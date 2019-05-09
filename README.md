@@ -63,6 +63,13 @@ Known issues are logged at
 List of Changes
 ---------------
 
+Version 0.1.1
+
+* Documentation Updates:
+    * Added sideband control examples.
+
+*  Refactoring:
+    * Hilbert coefficients now provided by [SignalBox](https://github.com/ambisonictoolkit/SignalBox) Quark.
 
 
 Version 0.1.0
@@ -93,6 +100,10 @@ supported by
 
 Contributors
 ------------
+
+Version 0.1.1
+*  Joseph Anderson (@joslloand)
+*  Michael McCrea (@mtmccrea)
 
 Version 0.1.0
 *  Joseph Anderson (@joslloand)
