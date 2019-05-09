@@ -63,7 +63,13 @@ ARGUMENT:: size
 
 The size of the kernel used for emphasis::Hartley Phasing:: filtering.
 
+DISCUSSION::
 
+WARNING::To be deprecated! Use link::Classes/Signal#*hilbert#Signal *hilbert.real:: instead.::
+
+code::
+Signal.hilbert(1000).real.plot("Hilbert Real Coefficients")
+::
 
 
 SECTION:: Frequency response
@@ -318,75 +324,5 @@ freq = dur.reciprocal;
 	}
 }
 );
-)
-::
-
-SUBSECTION:: caclCoeffs
-
-code::
-/*
-
-FFT analysis functions
-
-NOTE: FFT returns linear frequency
-
-*/
-(
-~calcMag = { arg kernel;
-
-    var fftResponse, fftMag;
-
-    // FFT analysis here!
-    fftResponse = fft(
-        kernel.as(Signal),
-        Signal.newClear(kernel.size),
-        Signal.fftCosTable(kernel.size)
-    );
-
-    // find (& trim magnitude)
-    fftMag = fftResponse.magnitude;
-    fftMag = fftMag.copyFromStart((kernel.size/2).asInteger);
-
-    fftMag;
-};
-)
-
-
-/*
-        TEST Hartley : *calcCoeffs
-
-        coefficients
-*/
-
-(
-var size;
-var kernel;
-var plotDbMin, plotDbMax;
-
-// kernel size
-size = 2048;
-
-// plot params
-plotDbMin = -60.0;
-plotDbMax = 6.0;
-
-
-// calculate coefficients
-kernel = HilbertHRe.calcCoeffs(size);
-
-// plot coefficients
-kernel.plot(
-	name: "Real Coefficients",
-	minval: -1,
-	maxval: 1
-);
-
-// plot magnitude
-~calcMag.value(kernel).ampdb.plot(
-	name: "Real Magnitude Response",
-	minval: plotDbMin,
-	maxval: plotDbMax
-);
-
 )
 ::

@@ -231,16 +231,16 @@ HilbertH {
 		})
 	}
 
-	// calculate real coefficients as delayed impulse
+	/* To be deprecated */
 	*calcRealCoeffs { |size|
-
-		^HilbertHRe.calcCoeffs(size)
+		"HilbertH *calcRealCoeffs to be deprecated. Use SignalBox Quark: Signal *hilbert.real".warn;
+		^Signal.hilbert(size).real.as(Array)
 	}
 
-	// calculate imag coefficients via (1-cos(t)) / t
+	/* To be deprecated */
 	*calcImagCoeffs { |size|
-
-		^HilbertHIm.calcCoeffs(size)
+		"HilbertH *calcImagCoeffs to be deprecated. Use SignalBox Quark: Signal *hilbert.imag".warn;
+		^(Signal.kaiserWindow(size, a: 1) * Signal.hilbert(size).imag).as(Array)
 	}
 
 	*arMag { |in, size = 2048, mul = 1, add = 0|
@@ -310,65 +310,43 @@ HilbertHRe {
 	// between real and imaginary parts, at the expense of an
 	// extra convolution
 	*arConv { |in, size=2048, mul=1.0, add=0.0|
-		var r, kernel_r;
-
-		r = HilbertHRe.calcCoeffs(size);
-		kernel_r = LocalBuf.new(size, 1).set(r);
-
-		^Convolution2.ar(in, kernel_r, framesize: size, mul: mul, add: add);
+		^Convolution2.ar(
+			in,
+			LocalBuf.new(size, 1).set(
+				Signal.hilbert(size).real
+			),
+			framesize: size,
+			mul: mul,
+			add: add
+		)
 	}
 
-	// calculate real coefficients as delayed impulse
+	/* To be deprecated */
 	*calcCoeffs { |size|
-		var half_win, xReal;
-
-		half_win = size/2;
-
-		// real response
-		xReal = Array.fill(size, { 0.0 });
-		xReal.put(half_win, 1.0);
-
-		^xReal
+		"HilbertHRe *calcCoeffs to be deprecated. Use SignalBox Quark: Signal *hilbert.real".warn;
+		^Signal.hilbert(size).real.as(Array)
 	}
-
-	// // calculate real coefficients via sinc
-	// *calcCoeffs { |size|
-	// 	var half_win, window, xReal;
-	//
-	// 	half_win = size/2;
-	// 	window = Signal.hanningWindow(size+1);
-	//
-	// 	// imaginary response
-	// 	xReal = Array.series(size+1, half_win.neg, 1);
-	// 	xReal = xReal.collect({|i| (i == 0).if({ 1 }, { sin(pi * i) / (pi * i) }) }) * window;
-	//
-	// 	^xReal.keep(size)
-	// }
 }
 
 
 HilbertHIm {
 	*ar {
 		| in, size=2048, mul=1.0, add=0.0 |
-		var i, kernel_i, image;
-
-		i = HilbertHIm.calcCoeffs(size);
-		kernel_i = LocalBuf.new(size, 1).set(i);
-
-		^Convolution2.ar(in, kernel_i, framesize: size, mul: mul, add: add);
+		^Convolution2.ar(
+			in,
+			LocalBuf.new(size, 1).set(
+				Signal.kaiserWindow(size, a: 1) * Signal.hilbert(size).imag
+			),
+			framesize: size,
+			mul: mul,
+			add: add
+		)
 	}
 
-	// calculate imag coefficients via (1-cos(t)) / t
+	/* To be deprecated */
 	*calcCoeffs { |size|
-		var half_win, window, xImag;
-
-		half_win = size/2;
-		window = Signal.hanningWindow(size+1);
-
-		// imaginary response
-		xImag = Array.series(size+1, half_win.neg, 1);
-		xImag = xImag.collect({|i| (i == 0).if({ 0 }, { 1 - cos(pi * i) / (pi * i) }) }) * window;
-		^xImag.keep(size);
+		"HilbertHIm *calcCoeffs to be deprecated. Use SignalBox Quark: Signal *hilbert.imag".warn;
+		^(Signal.kaiserWindow(size, a: 1) * Signal.hilbert(size).imag).as(Array)
 	}
 }
 
@@ -540,4 +518,3 @@ HilbertPDNIm {
 		^((hilbertSin * mul) + add)
 	}
 }
-
